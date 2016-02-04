@@ -75,6 +75,15 @@ defmodule ElMascarar.GameState do
    }
   end
 
+  test "switch own card as second player" do
+    assert_raise RuntimeError, fn ->
+      create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+        |> ready
+        |> switch(1)
+        |> switch(1)
+    end
+  end
+
   def create_game(card_names) do
     %{
       players: Enum.take(card_names, 4) |> create_players_list,
@@ -94,7 +103,7 @@ defmodule ElMascarar.GameState do
   end
 
   def switch(game, card_number) do
-    if card_number == 0 do
+    if card_number == game.round do
       raise "CannotSwitchOwnCard"
     else
       game = ready(game)

@@ -153,7 +153,7 @@ defmodule ElMascarar.GameStateTest do
         |> switch(1, true)
         |> switch(0, true)
         |> switch(0, true)
-        |> reveal()
+        |> reveal(false)
     end
   end
 
@@ -164,9 +164,32 @@ defmodule ElMascarar.GameStateTest do
       |> switch(0, true)
       |> switch(0, true)
       |> switch(0, true)
-      |> reveal() == %{
+      |> reveal(false) == %{
         players: [
           %{ card: "Revealed", true_card: "Judge", money: 6 },
+          %{ card: "Unknown", true_card: "King", money: 6 },
+          %{ card: "Unknown", true_card: "Queen", money: 6 },
+          %{ card: "Unknown", true_card: "Thief", money: 6 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 0,
+        round: 5,
+      }
+  end
+
+  test "reveal shows card to owner" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> reveal(true) == %{
+        players: [
+          %{ card: "Judge", true_card: "Judge", money: 6 },
           %{ card: "Unknown", true_card: "King", money: 6 },
           %{ card: "Unknown", true_card: "Queen", money: 6 },
           %{ card: "Unknown", true_card: "Thief", money: 6 },

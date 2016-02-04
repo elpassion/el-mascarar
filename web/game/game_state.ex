@@ -39,14 +39,14 @@ defmodule ElMascarar.GameState do
     end
   end
 
-  def reveal(game) do
+  def reveal(game, is_owner) do
     if game.round < 4 do
       raise "NotSupported"
     else
       game = ready(game)
       active_player_card_number = rem(game.round, 4)
       myPreviousCard = Enum.at(game.players, active_player_card_number)
-      myCard = myPreviousCard |> Map.put(:card, "Revealed")
+      myCard = myPreviousCard |> Map.put(:card, if is_owner do myPreviousCard.true_card else "Revealed" end)
       %{
         players: game.players |> List.replace_at(active_player_card_number, myCard),
         free_cards: game.free_cards,

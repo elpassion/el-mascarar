@@ -147,8 +147,44 @@ defmodule ElMascarar.GameState do
     end
   end
 
+  test "reveal ok on move 4" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1)
+      |> switch(0)
+      |> switch(0)
+      |> switch(0)
+      |> reveal() == %{
+        players: [
+          %{ card: "Revealed", true_card: "Judge", money: 6 },
+          %{ card: "Unknown", true_card: "King", money: 6 },
+          %{ card: "Unknown", true_card: "Queen", money: 6 },
+          %{ card: "Unknown", true_card: "Thief", money: 6 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 0,
+        round: 5,
+      }
+  end
+
   def reveal(game) do
-    raise "NotSupported"
+    if game.round < 4 do
+      raise "NotSupported"
+    else
+      game = ready(game)
+      active_player_card_number = rem(game.round, 4)
+      myPreviousCard = Enum.at(game.players, active_player_card_number)
+      myCard = myPreviousCard |> Map.put(:card, "Revealed")
+      %{
+        players: game.players |> List.replace_at(active_player_card_number, myCard),
+        free_cards: game.free_cards,
+        court_money: game.court_money,
+        round: game.round + 1,
+      }
+    end
   end
 
   def create_game(card_names) do

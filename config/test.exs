@@ -12,7 +12,6 @@ config :logger, level: :warn
 # Configure your database
 config :el_mascarar, ElMascarar.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
   password: "postgres",
   database: "el_mascarar_test",
   pool: Ecto.Adapters.SQL.Sandbox

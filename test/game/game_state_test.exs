@@ -202,4 +202,24 @@ defmodule ElMascarar.GameStateTest do
         round: 5,
       }
   end
+
+
+  test "fake switching" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, false) == %{
+      players: [
+        %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
+        %{ card: "SwitchedOrNot", true_card: "King", money: 6 },
+        %{ card: "Unknown", true_card: "Thief", money: 6 },
+        %{ card: "Unknown", true_card: "Judge", money: 6 },
+      ],
+      free_cards: [
+        %{ card: "Unknown", true_card: "Bishop" },
+        %{ card: "Unknown", true_card: "Liar" }
+      ],
+      court_money: 0,
+      round: 1,
+    }
+  end
 end

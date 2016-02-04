@@ -27,8 +27,13 @@ defmodule ElMascarar.GameState do
       allPreviousCards = game.players ++ game.free_cards
       myPreviousCard = Enum.at(game.players, active_player_card_number)
       theirPreviousCard = Enum.at(allPreviousCards, card_number)
-      myCard = myPreviousCard |> Map.put(:true_card, theirPreviousCard.true_card) |> Map.put(:card, "SwitchedOrNot")
-      theirCard = theirPreviousCard |> Map.put(:true_card, myPreviousCard.true_card) |> Map.put(:card, "SwitchedOrNot")
+      if switch do
+        myCard = myPreviousCard |> Map.put(:true_card, theirPreviousCard.true_card) |> Map.put(:card, "SwitchedOrNot")
+        theirCard = theirPreviousCard |> Map.put(:true_card, myPreviousCard.true_card) |> Map.put(:card, "SwitchedOrNot")
+      else
+        myCard = myPreviousCard |> Map.put(:card, "SwitchedOrNot")
+        theirCard = theirPreviousCard |> Map.put(:card, "SwitchedOrNot")
+      end
       allCards = allPreviousCards |> List.replace_at(active_player_card_number, myCard) |> List.replace_at(card_number, theirCard)
       %{
         players: Enum.take(allCards, 4),

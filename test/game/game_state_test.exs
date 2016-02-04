@@ -19,17 +19,16 @@ defmodule ElMascarar.GameState do
 
   def create_game(card_names) do
     %{
-      players: [
-        %{ card: Enum.at(card_names, 0), money: 6 },
-        %{ card: Enum.at(card_names, 1), money: 6 },
-        %{ card: Enum.at(card_names, 2), money: 6 },
-        %{ card: Enum.at(card_names, 3), money: 6 },
-      ],
+      players: create_players_list(Enum.take(card_names, 4)),
       free_cards: [
         %{ card: Enum.at(card_names, 4) },
         %{ card: Enum.at(card_names, 5) },
       ],
       court_money: 0,
     }
+  end
+
+  defp create_players_list(card_names) do
+    Enum.map(card_names, fn(card_name) -> %{ card: card_name, money: 6 } end)
   end
 end

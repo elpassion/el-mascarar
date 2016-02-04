@@ -14,6 +14,7 @@ defmodule ElMascarar.GameState do
         %{ card: "Liar", true_card: "Liar" }
       ],
       court_money: 0,
+      round: 0,
     }
   end
 
@@ -30,6 +31,7 @@ defmodule ElMascarar.GameState do
        %{ card: "Unknown", true_card: "Liar" }
      ],
      court_money: 0,
+     round: 0,
    }
   end
 
@@ -52,6 +54,24 @@ defmodule ElMascarar.GameState do
        %{ card: "Unknown", true_card: "Liar" }
      ],
      court_money: 0,
+     round: 1,
+   }
+  end
+
+  test "switch second player" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"]) |> ready |> switch(1) |> switch(2) == %{
+     players: [
+       %{ card: "Unknown", true_card: "King", money: 6 },
+       %{ card: "SwitchedOrNot", true_card: "Thief", money: 6 },
+       %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
+       %{ card: "Unknown", true_card: "Judge", money: 6 },
+     ],
+     free_cards: [
+       %{ card: "Unknown", true_card: "Bishop" },
+       %{ card: "Unknown", true_card: "Liar" }
+     ],
+     court_money: 0,
+     round: 2,
    }
   end
 
@@ -60,6 +80,7 @@ defmodule ElMascarar.GameState do
       players: Enum.take(card_names, 4) |> create_players_list,
       free_cards: Enum.slice(card_names, 4..5) |> create_free_cards_list,
       court_money: 0,
+      round: 0,
     }
   end
 
@@ -68,6 +89,7 @@ defmodule ElMascarar.GameState do
       players: game.players |> hide_cards,
       free_cards: game.free_cards |> hide_cards,
       court_money: game.court_money,
+      round: game.round,
     }
   end
 
@@ -75,12 +97,14 @@ defmodule ElMascarar.GameState do
     if card_number == 0 do
       raise "CannotSwitchOwnCard"
     else
-      myCard = Enum.at(game.players, 0) |> Map.put(:card, "SwitchedOrNot")
+      game = ready(game)
+      myCard = Enum.at(game.players, game.round) |> Map.put(:card, "SwitchedOrNot")
       theirCard = Enum.at(game.players, card_number) |> Map.put(:card, "SwitchedOrNot")
       %{
-        players: game.players |> List.replace_at(0, theirCard) |> List.replace_at(card_number, myCard),
+        players: game.players |> List.replace_at(game.round, theirCard) |> List.replace_at(card_number, myCard),
         free_cards: game.free_cards,
         court_money: game.court_money,
+        round: game.round + 1,
       }
     end
   end

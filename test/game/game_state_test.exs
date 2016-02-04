@@ -136,6 +136,21 @@ defmodule ElMascarar.GameState do
    }
   end
 
+  test "reveal not legal before move 4" do
+    assert_raise RuntimeError, fn ->
+      create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+        |> ready
+        |> switch(1)
+        |> switch(0)
+        |> switch(0)
+        |> reveal()
+    end
+  end
+
+  def reveal(game) do
+    raise "NotSupported"
+  end
+
   def create_game(card_names) do
     %{
       players: Enum.take(card_names, 4) |> create_players_list,

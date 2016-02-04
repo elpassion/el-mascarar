@@ -2,7 +2,7 @@ defmodule ElMascarar.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  channel "games:*", ElMascarar.RoomChannel
+  channel "games:*", ElMascarar.GameChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

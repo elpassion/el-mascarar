@@ -1,0 +1,12 @@
+language: elixir
+elixir:
+- 1.2.0
+addons:
+  postgresql: '9.4'
+deploy:
+  provider: heroku
+  api_key:
+    secure: AyBHeysKiAVPn7IhYzABVE4mItllvkiud8U1CoPM97Ba0C2Joc0k2Nac6PEEoX2nhkBM05vCyEK9JKmpW9COhZZv3p9IvoN37nr/V8NHJwtBdHM5ZtUi3YuvzDNl/lvbm2cRhJ3ZVJlM3Gx3Vm18ar61Dwl6tc6agK1GWz7acsVbA8Nd87/aq02uXlzPbA/bLLLVCIaYc3lM5OcRHZNjw+GXemy9rF1UuKb4kIr1u6+K3KG+yP9H3ukPKs2/4aMauR5RQQBYoaCooPQrc0FyNzGXYT8pGJBigMOnLxIv0EUk76jqavBmAKkb3+9tLDLS/G8H98Udv/7VXH4SJjnQjpsxOrhtqV4RwUoFY9gtFB5W90wbI7dUTvyxiVMVa6n5YOAKNNp7O0CmDp9OJjYkgQD0Sdpo4oeZ/ONiR6NezYT1aR/oskmJC2kYQeDgE/IG+pUSc/L3TuioT1jXgms+9hB1rrz9uWhG7Jd15EmSi1tx1jgia81nU/p0efuFD3HLa9fXm+yCrpoO0lk9ozIfwM/LOPdlYjPD29+BGfCQhZoLNuZUErHLboa9BL4FeKIeQT3OAasM78cUTRxJqXw71FWzuflUDfaBXPGN+Y/qYFTf+CNR6Km5jFSdNFWdMh3wUD+6Ewm/Ds5IU/znkZnvNSVaHBJAI+4OQGuZUsoaTVo=
+  app: el-mascarar
+  on:
+    repo: elpassion/el-mascarar

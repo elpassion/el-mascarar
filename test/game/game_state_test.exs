@@ -119,6 +119,23 @@ defmodule ElMascarar.GameState do
    }
   end
 
+  test "switch free card" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"]) |> ready |> switch(5) == %{
+     players: [
+       %{ card: "SwitchedOrNot", true_card: "Liar", money: 6 },
+       %{ card: "Unknown", true_card: "King", money: 6 },
+       %{ card: "Unknown", true_card: "Thief", money: 6 },
+       %{ card: "Unknown", true_card: "Judge", money: 6 },
+     ],
+     free_cards: [
+       %{ card: "Unknown", true_card: "Bishop" },
+       %{ card: "SwitchedOrNot", true_card: "Queen" }
+     ],
+     court_money: 0,
+     round: 1,
+   }
+  end
+
   def create_game(card_names) do
     %{
       players: Enum.take(card_names, 4) |> create_players_list,
@@ -143,11 +160,15 @@ defmodule ElMascarar.GameState do
       raise "CannotSwitchOwnCard"
     else
       game = ready(game)
-      myCard = Enum.at(game.players, active_player_card_number) |> Map.put(:card, "SwitchedOrNot")
-      theirCard = Enum.at(game.players, card_number) |> Map.put(:card, "SwitchedOrNot")
+      allPreviousCards = game.players ++ game.free_cards
+      myPreviousCard = Enum.at(game.players, active_player_card_number)
+      theirPreviousCard = Enum.at(allPreviousCards, card_number)
+      myCard = myPreviousCard |> Map.put(:true_card, theirPreviousCard.true_card) |> Map.put(:card, "SwitchedOrNot")
+      theirCard = theirPreviousCard |> Map.put(:true_card, myPreviousCard.true_card) |> Map.put(:card, "SwitchedOrNot")
+      allCards = allPreviousCards |> List.replace_at(active_player_card_number, myCard) |> List.replace_at(card_number, theirCard)
       %{
-        players: game.players |> List.replace_at(active_player_card_number, theirCard) |> List.replace_at(card_number, myCard),
-        free_cards: game.free_cards,
+        players: Enum.take(allCards, 4),
+        free_cards: Enum.drop(allCards, 4),
         court_money: game.court_money,
         round: game.round + 1,
       }

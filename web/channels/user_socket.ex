@@ -1,5 +1,6 @@
 defmodule ElMascarar.UserSocket do
   use Phoenix.Socket
+  alias ElMascarar.Player
 
   ## Channels
   channel "games:*", ElMascarar.GameChannel
@@ -17,7 +18,7 @@ defmodule ElMascarar.UserSocket do
   #
   #  To deny connection, return `:error`.
   def connect(_params, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, :player_id, Repo.insert!(%Player{}).id)}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:

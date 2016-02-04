@@ -21,6 +21,9 @@ defmodule ElMascarar.ChannelCase do
       use Phoenix.ChannelTest
 
       alias ElMascarar.Repo
+      alias ElMascarar.Player
+      alias ElMascarar.Game
+      alias ElMascarar.Card
       import Ecto.Model
       import Ecto.Query, only: [from: 2]
 

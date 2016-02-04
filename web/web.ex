@@ -19,6 +19,10 @@ defmodule ElMascarar.Web do
   def model do
     quote do
       use Ecto.Model
+      alias ElMascarar.Card
+      alias ElMascarar.Player
+      alias ElMascarar.Game
+      alias ElMascarar.Repo
     end
   end
 
@@ -57,7 +61,9 @@ defmodule ElMascarar.Web do
   def channel do
     quote do
       use Phoenix.Channel
-
+      alias ElMascarar.Player
+      alias ElMascarar.Game
+      alias ElMascarar.Card
       alias ElMascarar.Repo
       import Ecto.Model
       import Ecto.Query, only: [from: 2]

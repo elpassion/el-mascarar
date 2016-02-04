@@ -139,7 +139,7 @@ defmodule ElMascarar.GameState do
   def create_game(card_names) do
     %{
       players: Enum.take(card_names, 4) |> create_players_list,
-      free_cards: Enum.slice(card_names, 4..5) |> create_free_cards_list,
+      free_cards: Enum.drop(card_names, 4) |> create_free_cards_list,
       court_money: 0,
       round: 0,
     }

@@ -61,6 +61,10 @@ defmodule ElMascarar.GameState do
     end
   end
 
+  def activate(game, card_name) do
+    raise "NotSupported"
+  end
+
   def hide_cards(cards) do
     Enum.map(cards, fn(card) -> Map.put(card, :card, "Unknown") end)
   end

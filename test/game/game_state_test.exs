@@ -203,7 +203,6 @@ defmodule ElMascarar.GameStateTest do
       }
   end
 
-
   test "fake switching" do
     assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
       |> ready
@@ -221,5 +220,16 @@ defmodule ElMascarar.GameStateTest do
       court_money: 0,
       round: 1,
     }
+  end
+
+  test "activation not legal before move 4" do
+    assert_raise RuntimeError, fn ->
+      create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+        |> ready
+        |> switch(1, true)
+        |> switch(0, true)
+        |> switch(0, true)
+        |> activate("Queen")
+    end
   end
 end

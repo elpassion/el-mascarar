@@ -18,7 +18,7 @@ defmodule ElMascarar.GameState do
     }
   end
 
-  def switch(game, card_number) do
+  def switch(game, card_number, switch) do
     active_player_card_number = rem(game.round, 4)
     if card_number == active_player_card_number do
       raise "CannotSwitchOwnCard"

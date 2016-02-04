@@ -38,50 +38,57 @@ defmodule ElMascarar.GameStateTest do
 
   test "switch own card" do
     assert_raise RuntimeError, fn ->
-      create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"]) |> ready |> switch(0)
+      create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+        |> ready
+        |> switch(0, true)
     end
   end
 
   test "switch other card" do
-    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"]) |> ready |> switch(1) == %{
-     players: [
-       %{ card: "SwitchedOrNot", true_card: "King", money: 6 },
-       %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
-       %{ card: "Unknown", true_card: "Thief", money: 6 },
-       %{ card: "Unknown", true_card: "Judge", money: 6 },
-     ],
-     free_cards: [
-       %{ card: "Unknown", true_card: "Bishop" },
-       %{ card: "Unknown", true_card: "Liar" }
-     ],
-     court_money: 0,
-     round: 1,
-   }
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, true) == %{
+      players: [
+        %{ card: "SwitchedOrNot", true_card: "King", money: 6 },
+        %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
+        %{ card: "Unknown", true_card: "Thief", money: 6 },
+        %{ card: "Unknown", true_card: "Judge", money: 6 },
+      ],
+      free_cards: [
+        %{ card: "Unknown", true_card: "Bishop" },
+        %{ card: "Unknown", true_card: "Liar" }
+      ],
+      court_money: 0,
+      round: 1,
+    }
   end
 
   test "switch second player" do
-    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"]) |> ready |> switch(1) |> switch(2) == %{
-     players: [
-       %{ card: "Unknown", true_card: "King", money: 6 },
-       %{ card: "SwitchedOrNot", true_card: "Thief", money: 6 },
-       %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
-       %{ card: "Unknown", true_card: "Judge", money: 6 },
-     ],
-     free_cards: [
-       %{ card: "Unknown", true_card: "Bishop" },
-       %{ card: "Unknown", true_card: "Liar" }
-     ],
-     court_money: 0,
-     round: 2,
-   }
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, true)
+      |> switch(2, true) == %{
+      players: [
+        %{ card: "Unknown", true_card: "King", money: 6 },
+        %{ card: "SwitchedOrNot", true_card: "Thief", money: 6 },
+        %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
+        %{ card: "Unknown", true_card: "Judge", money: 6 },
+      ],
+      free_cards: [
+        %{ card: "Unknown", true_card: "Bishop" },
+        %{ card: "Unknown", true_card: "Liar" }
+      ],
+      court_money: 0,
+      round: 2,
+    }
   end
 
   test "switch own card as second player" do
     assert_raise RuntimeError, fn ->
       create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
         |> ready
-        |> switch(1)
-        |> switch(1)
+        |> switch(1, true)
+        |> switch(1, true)
     end
   end
 
@@ -89,22 +96,22 @@ defmodule ElMascarar.GameStateTest do
     assert_raise RuntimeError, fn ->
       create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
         |> ready
-        |> switch(1)
-        |> switch(0)
-        |> switch(0)
-        |> switch(0)
-        |> switch(0)
+        |> switch(1, true)
+        |> switch(0, true)
+        |> switch(0, true)
+        |> switch(0, true)
+        |> switch(0, true)
     end
   end
 
   test "switch 5 times" do
     assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
       |> ready
-      |> switch(1)
-      |> switch(2)
-      |> switch(3)
-      |> switch(0)
-      |> switch(1) == %{
+      |> switch(1, true)
+      |> switch(2, true)
+      |> switch(3, true)
+      |> switch(0, true)
+      |> switch(1, true) == %{
         players: [
           %{ card: "SwitchedOrNot", true_card: "Thief", money: 6 },
           %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
@@ -121,29 +128,31 @@ defmodule ElMascarar.GameStateTest do
   end
 
   test "switch free card" do
-    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"]) |> ready |> switch(5) == %{
-     players: [
-       %{ card: "SwitchedOrNot", true_card: "Liar", money: 6 },
-       %{ card: "Unknown", true_card: "King", money: 6 },
-       %{ card: "Unknown", true_card: "Thief", money: 6 },
-       %{ card: "Unknown", true_card: "Judge", money: 6 },
-     ],
-     free_cards: [
-       %{ card: "Unknown", true_card: "Bishop" },
-       %{ card: "SwitchedOrNot", true_card: "Queen" }
-     ],
-     court_money: 0,
-     round: 1,
-   }
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(5, true) == %{
+      players: [
+        %{ card: "SwitchedOrNot", true_card: "Liar", money: 6 },
+        %{ card: "Unknown", true_card: "King", money: 6 },
+        %{ card: "Unknown", true_card: "Thief", money: 6 },
+        %{ card: "Unknown", true_card: "Judge", money: 6 },
+      ],
+      free_cards: [
+        %{ card: "Unknown", true_card: "Bishop" },
+        %{ card: "SwitchedOrNot", true_card: "Queen" }
+      ],
+      court_money: 0,
+      round: 1,
+    }
   end
 
   test "reveal not legal before move 4" do
     assert_raise RuntimeError, fn ->
       create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
         |> ready
-        |> switch(1)
-        |> switch(0)
-        |> switch(0)
+        |> switch(1, true)
+        |> switch(0, true)
+        |> switch(0, true)
         |> reveal()
     end
   end
@@ -151,10 +160,10 @@ defmodule ElMascarar.GameStateTest do
   test "reveal ok on move 4" do
     assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
       |> ready
-      |> switch(1)
-      |> switch(0)
-      |> switch(0)
-      |> switch(0)
+      |> switch(1, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(0, true)
       |> reveal() == %{
         players: [
           %{ card: "Revealed", true_card: "Judge", money: 6 },

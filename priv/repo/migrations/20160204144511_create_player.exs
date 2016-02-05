@@ -6,6 +6,5 @@ defmodule ElMascarar.Repo.Migrations.CreatePlayer do
       add :game_id, :integer
       timestamps
     end
-
   end
 end

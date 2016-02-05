@@ -8,17 +8,32 @@ defmodule ElMascarar.GameChannel do
   end
 
   def join("games:" <> game_id, _, socket) do
-    response = %{"wawa": "wiwa"}
-    {:ok, response, socket}
+    broadcast socket, "game", %{game: Repo.get(Game, game_id)}
+    {:ok, socket}
   end
 
-  def handle_in("join:game", payload, socket) do
+  def handle_in("join:game", _, socket) do
     game = Game.find_or_create()
     player = Repo.get!(Player, socket.assigns.player_id)
     changeset = Player.changeset(player, %{game_id: game.id})
     Repo.update!(changeset)
 
     {:reply, {:ok, %{game: game}}, socket}
+  end
+
+  def handle_in("switch", %{index: index, switch: switch}, socket) do
+    "games:" <> game_id = socket.topic
+    game = Repo.get!(Game, game_id) |> Game.switch(index, switch)
+    broadcast socket, "game", %{game: game}
+    {:ok, socket}
+  end
+
+  def handle_in("reveal", _, socket) do
+    "games:" <> game_id = socket.topic
+    {player_game, rest_game} = Repo.get!(Game, game_id) |> Game.reveal
+    push socket, "game", %{game: player_game}
+    broadcast_from socket, "game", %{game: rest_game}
+    {:ok, socket}
   end
 
   # Add authorization logic here as required.

@@ -124,11 +124,19 @@ defmodule ElMascarar.GameState do
           players: Enum.map(game.players, fn(p) ->
             activated = String.starts_with? p.card, "Claim:"
             if activated do
-              %{
-                card: p.true_card,
-                true_card: p.true_card,
-                money: p.money - 1,
-              }
+              if p.card == "Claim:#{p.true_card}" do
+                %{
+                  card: p.true_card,
+                  true_card: p.true_card,
+                  money: p.money + if p.card == "Claim:King" do 3 else 2 end,
+                }
+              else
+                %{
+                  card: p.true_card,
+                  true_card: p.true_card,
+                  money: p.money - 1,
+                }
+              end
             else
               p
             end

@@ -1,6 +1,7 @@
 defmodule ElMascarar.UserSocket do
   use Phoenix.Socket
   alias ElMascarar.Player
+  alias ElMascarar.Repo
 
   ## Channels
   channel "games:*", ElMascarar.GameChannel

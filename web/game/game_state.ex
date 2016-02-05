@@ -91,33 +91,54 @@ defmodule ElMascarar.GameState do
 
   def pass(game) do
     new_active_player = rem(game.active_player + 1, 4)
-    active_player_card_number = rem(game.round, 4)
-    if new_active_player == active_player_card_number do
-      myPreviousCard = Enum.at(game.players, active_player_card_number)
-      myCard = %{
-        card: "Unknown",
-        true_card: myPreviousCard.true_card,
-        money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else 2 end,
-      }
-      new_players = game.players |> List.replace_at(active_player_card_number, myCard)
-      if myPreviousCard.card == "Claim:Thief" do
-        right_player_card_number = rem(active_player_card_number - 1, 4)
-        right_player_previous_card = Enum.at(game.players, right_player_card_number)
-        right_player_card = right_player_previous_card |> Map.put(:money, right_player_previous_card.money - 1)
-        left_player_card_number = rem(active_player_card_number + 1, 4)
-        left_player_previous_card = Enum.at(game.players, left_player_card_number)
-        left_player_card = left_player_previous_card |> Map.put(:money, left_player_previous_card.money - 1)
-        new_players = new_players
-          |> List.replace_at(right_player_card_number, right_player_card)
-          |> List.replace_at(left_player_card_number, left_player_card)
+    round_player = rem(game.round, 4)
+    if new_active_player == round_player do
+      myPreviousCard = Enum.at(game.players, round_player)
+      if Enum.count(Enum.filter(game.players, fn(p) -> p.card == myPreviousCard.card end)) == 1 do
+        myCard = %{
+          card: "Unknown",
+          true_card: myPreviousCard.true_card,
+          money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else 2 end,
+        }
+        new_players = game.players |> List.replace_at(round_player, myCard)
+        if myPreviousCard.card == "Claim:Thief" do
+          right_player_card_number = rem(round_player - 1, 4)
+          right_player_previous_card = Enum.at(game.players, right_player_card_number)
+          right_player_card = right_player_previous_card |> Map.put(:money, right_player_previous_card.money - 1)
+          left_player_card_number = rem(round_player + 1, 4)
+          left_player_previous_card = Enum.at(game.players, left_player_card_number)
+          left_player_card = left_player_previous_card |> Map.put(:money, left_player_previous_card.money - 1)
+          new_players = new_players
+            |> List.replace_at(right_player_card_number, right_player_card)
+            |> List.replace_at(left_player_card_number, left_player_card)
+        end
+        %{
+          players: new_players,
+          free_cards: game.free_cards,
+          court_money: game.court_money,
+          round: game.round + 1,
+          active_player: new_active_player + 1,
+        }
+      else
+        %{
+          players: Enum.map(game.players, fn(p) ->
+            activated = String.starts_with? p.card, "Claim:"
+            if activated do
+              %{
+                card: p.true_card,
+                true_card: p.true_card,
+                money: p.money - 1,
+              }
+            else
+              p
+            end
+          end),
+          free_cards: game.free_cards,
+          court_money: 2,
+          round: game.round + 1,
+          active_player: new_active_player + 1,
+        }
       end
-      %{
-        players: new_players,
-        free_cards: game.free_cards,
-        court_money: game.court_money,
-        round: game.round + 1,
-        active_player: new_active_player + 1,
-      }
     else
       %{
         players: game.players,

@@ -139,6 +139,7 @@ defmodule ElMascarar.GameState do
   end
 
   def show_claimed_cards(game) do
+    claimer = Enum.at(game.players, rem(game.round, 4))
     new_players = Enum.map(game.players, fn(p) ->
       activated = String.starts_with? p.card, "Claim:"
       if activated do
@@ -165,7 +166,7 @@ defmodule ElMascarar.GameState do
     %{
       players: new_players,
       free_cards: game.free_cards,
-      court_money: game.court_money + liars_count,
+      court_money: (if claimer.card == "Claim:Judge" do 0 else game.court_money end) + liars_count,
       round: game.round + 1,
       active_player: rem(game.active_player + 1, 4),
     }

@@ -396,4 +396,29 @@ defmodule ElMascarar.GameStateTest do
         active_player: 1,
       }
   end
+
+  test "can claim to be the same card as active player" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> activate("Queen")
+      |> activate("Queen") == %{
+        players: [
+          %{ card: "Claim:Queen", true_card: "Judge", money: 6 },
+          %{ card: "Claim:Queen", true_card: "King", money: 6 },
+          %{ card: "Unknown", true_card: "Queen", money: 6 },
+          %{ card: "Unknown", true_card: "Thief", money: 6 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 0,
+        round: 4,
+        active_player: 2,
+      }
+  end
 end

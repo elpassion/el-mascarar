@@ -120,7 +120,7 @@ defmodule ElMascarar.GameState do
         %{
           players: new_players,
           free_cards: game.free_cards,
-          court_money: game.court_money,
+          court_money: if myPreviousCard.card == "Claim:Judge" do 0 else game.court_money end,
           round: game.round + 1,
           active_player: new_active_player + 1,
         }

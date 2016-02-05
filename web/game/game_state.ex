@@ -166,10 +166,14 @@ defmodule ElMascarar.GameState do
     %{
       players: new_players,
       free_cards: game.free_cards,
-      court_money: (if Enum.count(Enum.filter(game.players, fn(p) -> p.card == "Claim:Judge" && p.true_card == "Judge" end)) == 1 do 0 else game.court_money end) + liars_count,
+      court_money: (if game |> judge_is_revealed do 0 else game.court_money end) + liars_count,
       round: game.round + 1,
       active_player: rem(game.active_player + 1, 4),
     }
+  end
+
+  def judge_is_revealed(game) do
+    Enum.count(Enum.filter(game.players, fn(p) -> p.card == "Claim:Judge" && p.true_card == "Judge" end)) == 1
   end
 
   def hide_cards(cards) do

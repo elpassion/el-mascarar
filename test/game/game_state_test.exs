@@ -513,4 +513,34 @@ defmodule ElMascarar.GameStateTest do
         active_player: 1,
       }
   end
+
+  test "lying causes court money to accumulate" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> switch(1, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> activate("Queen")
+      |> pass
+      |> pass
+      |> activate("Queen")
+      |> activate("King")
+      |> activate("King")
+      |> pass
+      |> pass == %{
+        players: [
+          %{ card: "Unknown", true_card: "Judge", money: 5 },
+          %{ card: "King", true_card: "King", money: 9 },
+          %{ card: "Queen", true_card: "Queen", money: 5 },
+          %{ card: "Unknown", true_card: "Thief", money: 5 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 3,
+        round: 6,
+        active_player: 2,
+      }
+  end
 end

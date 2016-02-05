@@ -139,29 +139,33 @@ defmodule ElMascarar.GameState do
   end
 
   def show_claimed_cards(game) do
-    %{
-      players: Enum.map(game.players, fn(p) ->
-        activated = String.starts_with? p.card, "Claim:"
-        if activated do
-          if p.card == "Claim:#{p.true_card}" do
-            %{
-              card: p.true_card,
-              true_card: p.true_card,
-              money: p.money + if p.card == "Claim:King" do 3 else 2 end,
-            }
-          else
-            %{
-              card: p.true_card,
-              true_card: p.true_card,
-              money: p.money - 1,
-            }
-          end
+    new_players = Enum.map(game.players, fn(p) ->
+      activated = String.starts_with? p.card, "Claim:"
+      if activated do
+        if p.card == "Claim:#{p.true_card}" do
+          %{
+            card: p.true_card,
+            true_card: p.true_card,
+            money: p.money + if p.card == "Claim:King" do 3 else 2 end,
+          }
         else
-          p
+          %{
+            card: p.true_card,
+            true_card: p.true_card,
+            money: p.money - 1,
+          }
         end
-      end),
+      else
+        p
+      end
+    end)
+    liars_count = Enum.count(Enum.filter(game.players, fn(p) ->
+      p.card != "Unknown" && p.card != "Claim:#{p.true_card}"
+    end))
+    %{
+      players: new_players,
       free_cards: game.free_cards,
-      court_money: 2,
+      court_money: game.court_money + liars_count,
       round: game.round + 1,
       active_player: rem(game.active_player + 1, 4),
     }

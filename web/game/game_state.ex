@@ -150,32 +150,7 @@ defmodule ElMascarar.GameState do
           active_player: new_active_player + 1,
         }
       else
-        %{
-          players: Enum.map(game.players, fn(p) ->
-            activated = String.starts_with? p.card, "Claim:"
-            if activated do
-              if p.card == "Claim:#{p.true_card}" do
-                %{
-                  card: p.true_card,
-                  true_card: p.true_card,
-                  money: p.money + if p.card == "Claim:King" do 3 else 2 end,
-                }
-              else
-                %{
-                  card: p.true_card,
-                  true_card: p.true_card,
-                  money: p.money - 1,
-                }
-              end
-            else
-              p
-            end
-          end),
-          free_cards: game.free_cards,
-          court_money: 2,
-          round: game.round + 1,
-          active_player: new_active_player + 1,
-        }
+        show_claimed_cards(game |> Map.put(:active_player, new_active_player))
       end
     else
       %{
@@ -186,6 +161,35 @@ defmodule ElMascarar.GameState do
         active_player: new_active_player,
       }
     end
+  end
+
+  def show_claimed_cards(game) do
+    %{
+      players: Enum.map(game.players, fn(p) ->
+        activated = String.starts_with? p.card, "Claim:"
+        if activated do
+          if p.card == "Claim:#{p.true_card}" do
+            %{
+              card: p.true_card,
+              true_card: p.true_card,
+              money: p.money + if p.card == "Claim:King" do 3 else 2 end,
+            }
+          else
+            %{
+              card: p.true_card,
+              true_card: p.true_card,
+              money: p.money - 1,
+            }
+          end
+        else
+          p
+        end
+      end),
+      free_cards: game.free_cards,
+      court_money: 2,
+      round: game.round + 1,
+      active_player: rem(game.active_player + 1, 4),
+    }
   end
 
   def hide_cards(cards) do

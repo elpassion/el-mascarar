@@ -47,6 +47,10 @@ defmodule ElMascarar.GameState do
     end
   end
 
+  def new_reveal(game) do
+    { reveal(game, true), reveal(game, false) }
+  end
+
   def reveal(game, is_owner) do
     if game.round < 4 do
       raise "NotSupported"
@@ -139,7 +143,6 @@ defmodule ElMascarar.GameState do
   end
 
   def show_claimed_cards(game) do
-    claimer = Enum.at(game.players, rem(game.round, 4))
     new_players = Enum.map(game.players, fn(p) ->
       activated = String.starts_with? p.card, "Claim:"
       if activated do

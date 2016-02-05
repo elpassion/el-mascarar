@@ -64,12 +64,12 @@ defmodule ElMascarar.Game do
   end
 
   def reveal(game) do
-    player_game_state = game.game_state |> GameState.reveal(true)
+    player_game_state = game.game_state |> symbolized_game_state |> GameState.reveal(true)
     player_game_changeset = Game.changeset(game, %{game_state: player_game_state})
-    rest_game_state = game.game_state |> GameState.reveal(false)
+    rest_game_state = game.game_state |> symbolized_game_state |> GameState.reveal(false)
     rest_game_changeset = Game.changeset(game, %{game_state: rest_game_state})
-    player_game = Repo.update!(player_game_changeset)
-    rest_game = Repo.update!(rest_game_changeset)
+    player_game = Repo.update!(player_game_changeset) |> Repo.preload(:players)
+    rest_game = Repo.update!(rest_game_changeset) |> Repo.preload(:players)
     {player_game, rest_game}
   end
 end

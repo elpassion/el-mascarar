@@ -78,6 +78,10 @@ defmodule ElMascarar.GameState do
     end
   end
 
+  def pass(game) do
+    game
+  end
+
   def hide_cards(cards) do
     Enum.map(cards, fn(card) -> Map.put(card, :card, "Unknown") end)
   end

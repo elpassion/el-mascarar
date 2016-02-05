@@ -278,4 +278,29 @@ defmodule ElMascarar.GameStateTest do
         round: 5,
       }
   end
+
+  test "two passes do nothing" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> activate("King")
+      |> pass()
+      |> pass() == %{
+        players: [
+          %{ card: "Claim:King", true_card: "Judge", money: 6 },
+          %{ card: "Unknown", true_card: "King", money: 6 },
+          %{ card: "Unknown", true_card: "Queen", money: 6 },
+          %{ card: "Unknown", true_card: "Thief", money: 6 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 0,
+        round: 5,
+      }
+  end
 end

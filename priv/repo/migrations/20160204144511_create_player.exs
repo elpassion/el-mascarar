@@ -4,9 +4,7 @@ defmodule ElMascarar.Repo.Migrations.CreatePlayer do
   def change do
     create table(:players) do
       add :game_id, :integer
-      add :money, :integer
       timestamps
     end
-
   end
 end

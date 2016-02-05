@@ -2,15 +2,12 @@ defmodule ElMascarar.Player do
   use ElMascarar.Web, :model
 
   schema "players" do
-    field :money, :integer
-
-    has_one :card, Card
     belongs_to :game, Game
     timestamps
   end
 
   @required_fields ~w(game_id)
-  @optional_fields ~w(money card)
+  @optional_fields ~w()
 
   @doc """
   Creates a changeset based on the `model` and `params`.

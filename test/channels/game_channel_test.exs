@@ -22,7 +22,7 @@ defmodule ElMascarar.GameChannelTest do
   end
 
   test "join:game when there is a non empty game", %{socket: socket} do
-    game = Repo.insert!(%Game{court_money: 0, round: 0})
+    game = Repo.insert!(%Game{})
     player = Repo.insert!(%Player{game_id: game.id})
     ref = push socket, "join:game"
     game_id = game.id

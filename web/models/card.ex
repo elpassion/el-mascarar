@@ -10,8 +10,8 @@ defmodule ElMascarar.Card do
     timestamps
   end
 
-  @required_fields ~w(name state player_id game_id)
-  @optional_fields ~w()
+  @required_fields ~w(name state game_id)
+  @optional_fields ~w(player_id)
 
   @doc """
   Creates a changeset based on the `model` and `params`.

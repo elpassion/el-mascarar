@@ -91,7 +91,7 @@ defmodule ElMascarar.GameState do
       myCard = %{
         card: "Unknown",
         true_card: myPreviousCard.true_card,
-        money: myPreviousCard.money + 3,
+        money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else 2 end,
       }
       %{
         players: List.replace_at(game.players, active_player_card_number, myCard),

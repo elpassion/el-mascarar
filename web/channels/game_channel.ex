@@ -12,24 +12,36 @@ defmodule ElMascarar.GameChannel do
     {:ok, response, socket}
   end
 
-  def join("games:" <> game_id, _, socket) do
-    broadcast socket, "game", %{game: Repo.get(Game, game_id)}
+  def join("games:" <> game_id, payload, socket) do
+    send(self, {:after_join, %{game_id: game_id}})
     {:ok, socket}
   end
 
-  def handle_in("switch", %{index: index, switch: switch}, socket) do
+  def terminate(_message, socket) do
+
+  end
+
+  def handle_info({:after_join, %{game_id: game_id}}, socket) do
+    game = Repo.get(Game, game_id)
+    serialized_game = %{ game_state: game.game_state, id: game.id }
+    broadcast socket, "game", %{game: serialized_game}
+    {:noreply, socket}
+  end
+
+  def handle_in("switch", %{"index" => index, "switch" => switch}, socket) do
     "games:" <> game_id = socket.topic
     game = Repo.get!(Game, game_id) |> Game.switch(index, switch)
-    broadcast socket, "game", %{game: game}
-    {:ok, socket}
+    serialized_game = %{ game_state: game.game_state, id: game.id }
+    broadcast socket, "game", %{game: serialized_game}
+    {:noreply, socket}
   end
 
   def handle_in("reveal", _, socket) do
     "games:" <> game_id = socket.topic
     {player_game, rest_game} = Repo.get!(Game, game_id) |> Game.reveal
-    push socket, "game", %{game: player_game}
-    broadcast_from socket, "game", %{game: rest_game}
-    {:ok, socket}
+    push socket, "game", %{game: %{game_state: player_game.game_state, id: player_game.id}}
+    broadcast_from socket, "game", %{game: %{game_state: rest_game.game_state, id: rest_game.id}}
+    {:noreply, socket}
   end
 
   # Add authorization logic here as required.

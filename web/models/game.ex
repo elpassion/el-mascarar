@@ -45,8 +45,22 @@ defmodule ElMascarar.Game do
     Game.changeset(game, %{game_state: (game.game_state |> GameState.ready)}) |> Repo.update!
   end
 
+  def symbolize(object) do
+    for {key, val} <- object, into: %{}, do: {String.to_atom(key), val}
+  end
+
+  def symbolized_game_state(game_state) do
+    %{
+      players: Enum.map(game_state["players"], fn(player) -> symbolize(player) end),
+      free_cards: Enum.map(game_state["free_cards"], fn(card) -> symbolize(card) end),
+      round: game_state["round"],
+      court_money: game_state["court_money"],
+      active_player: game_state["active_player"],
+    }
+  end
+
   def switch(game, index, switch) do
-    Game.changeset(game, %{game_state: (game.game_state |> GameState.switch(index, switch))}) |> Repo.update!
+    Game.changeset(game, %{game_state: (game.game_state |> symbolized_game_state |> GameState.switch(index, switch))}) |> Repo.update!
   end
 
   def reveal(game) do

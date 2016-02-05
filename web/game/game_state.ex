@@ -93,8 +93,20 @@ defmodule ElMascarar.GameState do
         true_card: myPreviousCard.true_card,
         money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else 2 end,
       }
+      new_players = game.players |> List.replace_at(active_player_card_number, myCard)
+      if myPreviousCard.card == "Claim:Thief" do
+        right_player_card_number = rem(active_player_card_number - 1, 4)
+        right_player_previous_card = Enum.at(game.players, right_player_card_number)
+        right_player_card = right_player_previous_card |> Map.put(:money, right_player_previous_card.money - 1)
+        left_player_card_number = rem(active_player_card_number + 1, 4)
+        left_player_previous_card = Enum.at(game.players, left_player_card_number)
+        left_player_card = left_player_previous_card |> Map.put(:money, left_player_previous_card.money - 1)
+        new_players = new_players
+          |> List.replace_at(right_player_card_number, right_player_card)
+          |> List.replace_at(left_player_card_number, left_player_card)
+      end
       %{
-        players: List.replace_at(game.players, active_player_card_number, myCard),
+        players: new_players,
         free_cards: game.free_cards,
         court_money: game.court_money,
         round: game.round + 1,

@@ -70,6 +70,7 @@ defmodule ElMascarar.GameState do
       raise "NotSupported"
     else
       round_player = rem(game.round, 4)
+      new_active_player = rem(game.active_player + 1, 4)
       if game.active_player == round_player do
         game = ready(game)
       else
@@ -79,13 +80,42 @@ defmodule ElMascarar.GameState do
       end
       myPreviousCard = Enum.at(game.players, game.active_player)
       myCard = myPreviousCard |> Map.put(:card, "Claim:#{card_name}")
-      %{
+      new_game = %{
         players: game.players |> List.replace_at(game.active_player, myCard),
         free_cards: game.free_cards,
         court_money: game.court_money,
         round: game.round,
-        active_player: rem(game.active_player + 1, 4),
+        active_player: new_active_player,
       }
+      if new_active_player == round_player do
+        new_game = %{
+          players: Enum.map(new_game.players, fn(p) ->
+            activated = String.starts_with? p.card, "Claim:"
+            if activated do
+              if p.card == "Claim:#{p.true_card}" do
+                %{
+                  card: p.true_card,
+                  true_card: p.true_card,
+                  money: p.money + if p.card == "Claim:King" do 3 else 2 end,
+                }
+              else
+                %{
+                  card: p.true_card,
+                  true_card: p.true_card,
+                  money: p.money - 1,
+                }
+              end
+            else
+              p
+            end
+          end),
+          free_cards: game.free_cards,
+          court_money: 2,
+          round: new_game.round + 1,
+          active_player: new_game.active_player + 1,
+        }
+      end
+      new_game
     end
   end
 

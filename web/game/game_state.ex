@@ -103,7 +103,7 @@ defmodule ElMascarar.GameState do
         myCard = %{
           card: "Unknown",
           true_card: myPreviousCard.true_card,
-          money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else 2 end,
+          money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else if myPreviousCard.card == "Claim:Judge" do game.court_money else 2 end end,
         }
         new_players = game.players |> List.replace_at(round_player, myCard)
         if myPreviousCard.card == "Claim:Thief" do

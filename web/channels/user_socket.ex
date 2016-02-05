@@ -18,7 +18,8 @@ defmodule ElMascarar.UserSocket do
   #
   #  To deny connection, return `:error`.
   def connect(_params, socket) do
-    {:ok, assign(socket, :player_id, Repo.insert!(%Player{}).id)}
+    player_id = Repo.insert!(%Player{}).id
+    {:ok, assign(socket, :player_id, player_id)}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:

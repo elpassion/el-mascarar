@@ -660,4 +660,35 @@ defmodule ElMascarar.GameStateTest do
         active_player: 1,
       }
   end
+
+  test "judge gets the amount of money that is in court when revealed" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, false)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(1, true)
+      |> activate("Queen")
+      |> pass
+      |> pass
+      |> activate("Queen")
+      |> activate("Judge")
+      |> activate("Judge")
+      |> activate("Judge")
+      |> activate("Judge") == %{
+        players: [
+          %{ card: "Thief", true_card: "Thief", money: 4 },
+          %{ card: "Judge", true_card: "Judge", money: 7 },
+          %{ card: "King", true_card: "King", money: 5 },
+          %{ card: "Queen", true_card: "Queen", money: 7 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 3,
+        round: 6,
+        active_player: 2,
+      }
+  end
 end

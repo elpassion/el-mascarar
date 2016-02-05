@@ -103,7 +103,7 @@ defmodule ElMascarar.GameState do
         myCard = %{
           card: "Unknown",
           true_card: myPreviousCard.true_card,
-          money: myPreviousCard.money + if myPreviousCard.card == "Claim:King" do 3 else if myPreviousCard.card == "Claim:Judge" do game.court_money else 2 end end,
+          money: myPreviousCard.money + money_for_correct_card(game, myPreviousCard),
         }
         new_players = game.players |> List.replace_at(round_player, myCard)
         if myPreviousCard.card == "Claim:Thief" do
@@ -147,7 +147,7 @@ defmodule ElMascarar.GameState do
           %{
             card: p.true_card,
             true_card: p.true_card,
-            money: p.money + if p.card == "Claim:King" do 3 else 2 end,
+            money: p.money + money_for_correct_card(game, p),
           }
         else
           %{
@@ -170,6 +170,18 @@ defmodule ElMascarar.GameState do
       round: game.round + 1,
       active_player: rem(game.active_player + 1, 4),
     }
+  end
+
+  def money_for_correct_card(game, playerCard) do
+    if playerCard.card == "Claim:King" do
+      3
+    else
+      if playerCard.card == "Claim:Judge" do
+        game.court_money
+      else
+        2
+      end
+    end
   end
 
   def judge_is_revealed(game) do

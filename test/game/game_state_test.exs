@@ -421,4 +421,17 @@ defmodule ElMascarar.GameStateTest do
         active_player: 2,
       }
   end
+
+  test "cannot claim to be different card than active player" do
+    assert_raise RuntimeError, fn ->
+      create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+        |> ready
+        |> switch(1, true)
+        |> switch(0, true)
+        |> switch(0, true)
+        |> switch(0, true)
+        |> activate("Queen")
+        |> activate("Judge")
+    end
+  end
 end

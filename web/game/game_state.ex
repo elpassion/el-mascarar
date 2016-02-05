@@ -69,8 +69,13 @@ defmodule ElMascarar.GameState do
     if game.round < 4 do
       raise "NotSupported"
     else
-      if game.active_player == rem(game.round, 4) do
+      round_player = rem(game.round, 4)
+      if game.active_player == round_player do
         game = ready(game)
+      else
+        if Enum.at(game.players, round_player).card != "Claim:#{card_name}" do
+          raise "NotSupported"
+        end
       end
       myPreviousCard = Enum.at(game.players, game.active_player)
       myCard = myPreviousCard |> Map.put(:card, "Claim:#{card_name}")

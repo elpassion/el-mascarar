@@ -45,7 +45,7 @@ defmodule ElMascarar.Game do
     Game.changeset(game, %{game_state: (game.game_state |> GameState.ready)}) |> Repo.update!
   end
 
-  def switch(game, index) do
-    Game.changeset(game, %{game_state: (game.game_state |> GameState.switch(index))}) |> Repo.update!
+  def switch(game, index, switch) do
+    Game.changeset(game, %{game_state: (game.game_state |> GameState.switch(index, switch))}) |> Repo.update!
   end
 end

@@ -2,23 +2,19 @@ defmodule ElMascarar.GameChannel do
   use ElMascarar.Web, :channel
 
   def join("games:lobby", _, socket) do
-    player = Repo.get!(Player, socket.assigns.player_id)
-    response = %{"player_id": player.id}
+    game = Game.find_or_create()
+    player =
+      Repo.get!(Player, socket.assigns.player_id)
+      |> Player.changeset(%{game_id: game.id})
+      |> Repo.update!
+
+    response = %{player_id: player.id, game_id: game.id}
     {:ok, response, socket}
   end
 
   def join("games:" <> game_id, _, socket) do
     broadcast socket, "game", %{game: Repo.get(Game, game_id)}
     {:ok, socket}
-  end
-
-  def handle_in("join:game", _, socket) do
-    game = Game.find_or_create()
-    player = Repo.get!(Player, socket.assigns.player_id)
-    changeset = Player.changeset(player, %{game_id: game.id})
-    Repo.update!(changeset)
-
-    {:reply, {:ok, %{game: game}}, socket}
   end
 
   def handle_in("switch", %{index: index, switch: switch}, socket) do

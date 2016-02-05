@@ -31,5 +31,5 @@ defmodule ElMascarar.UserSocket do
   #     ElMascarar.Endpoint.broadcast("users_socket:" <> user.id, "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(_socket), do: nil
+  def id(socket), do: "player:#{socket.assigns.player_id}"
 end

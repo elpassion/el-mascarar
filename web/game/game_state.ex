@@ -68,7 +68,7 @@ defmodule ElMascarar.GameState do
       game = ready(game)
       active_player_card_number = rem(game.round, 4)
       myPreviousCard = Enum.at(game.players, active_player_card_number)
-      myCard = myPreviousCard |> Map.put(:card, "Claim:Queen")
+      myCard = myPreviousCard |> Map.put(:card, "Claim:#{card_name}")
       %{
         players: game.players |> List.replace_at(active_player_card_number, myCard),
         free_cards: game.free_cards,

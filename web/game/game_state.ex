@@ -6,6 +6,7 @@ defmodule ElMascarar.GameState do
       free_cards: Enum.drop(card_names, 4) |> create_free_cards_list,
       court_money: 0,
       round: 0,
+      active_player: 0,
     }
   end
 
@@ -15,6 +16,7 @@ defmodule ElMascarar.GameState do
       free_cards: game.free_cards |> hide_cards,
       court_money: game.court_money,
       round: game.round,
+      active_player: game.active_player,
     }
   end
 
@@ -40,6 +42,7 @@ defmodule ElMascarar.GameState do
         free_cards: Enum.drop(allCards, 4),
         court_money: game.court_money,
         round: game.round + 1,
+        active_player: rem(game.active_player + 1, 4),
       }
     end
   end
@@ -57,6 +60,7 @@ defmodule ElMascarar.GameState do
         free_cards: game.free_cards,
         court_money: game.court_money,
         round: game.round + 1,
+        active_player: rem(game.active_player + 1, 4),
       }
     end
   end
@@ -73,13 +77,38 @@ defmodule ElMascarar.GameState do
         players: game.players |> List.replace_at(active_player_card_number, myCard),
         free_cards: game.free_cards,
         court_money: game.court_money,
-        round: game.round + 1,
+        round: game.round,
+        active_player: rem(game.active_player + 1, 4),
       }
     end
   end
 
   def pass(game) do
-    game
+    new_active_player = rem(game.active_player + 1, 4)
+    active_player_card_number = rem(game.round, 4)
+    if new_active_player == active_player_card_number do
+      myPreviousCard = Enum.at(game.players, active_player_card_number)
+      myCard = %{
+        card: "Unknown",
+        true_card: myPreviousCard.true_card,
+        money: myPreviousCard.money + 3,
+      }
+      %{
+        players: List.replace_at(game.players, active_player_card_number, myCard),
+        free_cards: game.free_cards,
+        court_money: game.court_money,
+        round: game.round + 1,
+        active_player: new_active_player + 1,
+      }
+    else
+      %{
+        players: game.players,
+        free_cards: game.free_cards,
+        court_money: game.court_money,
+        round: game.round,
+        active_player: new_active_player,
+      }
+    end
   end
 
   def hide_cards(cards) do

@@ -16,6 +16,7 @@ defmodule ElMascarar.GameStateTest do
       ],
       court_money: 0,
       round: 0,
+      active_player: 0,
     }
   end
 
@@ -33,6 +34,7 @@ defmodule ElMascarar.GameStateTest do
      ],
      court_money: 0,
      round: 0,
+     active_player: 0,
    }
   end
 
@@ -60,6 +62,7 @@ defmodule ElMascarar.GameStateTest do
       ],
       court_money: 0,
       round: 1,
+      active_player: 1,
     }
   end
 
@@ -80,6 +83,7 @@ defmodule ElMascarar.GameStateTest do
       ],
       court_money: 0,
       round: 2,
+      active_player: 2,
     }
   end
 
@@ -124,6 +128,7 @@ defmodule ElMascarar.GameStateTest do
         ],
         court_money: 0,
         round: 5,
+        active_player: 1,
    }
   end
 
@@ -143,6 +148,7 @@ defmodule ElMascarar.GameStateTest do
       ],
       court_money: 0,
       round: 1,
+      active_player: 1,
     }
   end
 
@@ -177,6 +183,7 @@ defmodule ElMascarar.GameStateTest do
         ],
         court_money: 0,
         round: 5,
+        active_player: 1,
       }
   end
 
@@ -200,6 +207,7 @@ defmodule ElMascarar.GameStateTest do
         ],
         court_money: 0,
         round: 5,
+        active_player: 1,
       }
   end
 
@@ -219,6 +227,7 @@ defmodule ElMascarar.GameStateTest do
       ],
       court_money: 0,
       round: 1,
+      active_player: 1,
     }
   end
 
@@ -252,7 +261,8 @@ defmodule ElMascarar.GameStateTest do
           %{ card: "Unknown", true_card: "Liar" }
         ],
         court_money: 0,
-        round: 5,
+        round: 4,
+        active_player: 1,
       }
   end
 
@@ -275,7 +285,8 @@ defmodule ElMascarar.GameStateTest do
           %{ card: "Unknown", true_card: "Liar" }
         ],
         court_money: 0,
-        round: 5,
+        round: 4,
+        active_player: 1,
       }
   end
 
@@ -287,8 +298,8 @@ defmodule ElMascarar.GameStateTest do
       |> switch(0, true)
       |> switch(0, true)
       |> activate("King")
-      |> pass()
-      |> pass() == %{
+      |> pass
+      |> pass == %{
         players: [
           %{ card: "Claim:King", true_card: "Judge", money: 6 },
           %{ card: "Unknown", true_card: "King", money: 6 },
@@ -300,7 +311,35 @@ defmodule ElMascarar.GameStateTest do
           %{ card: "Unknown", true_card: "Liar" }
         ],
         court_money: 0,
+        round: 4,
+        active_player: 3,
+      }
+  end
+
+  test "third pass executes claim" do
+    assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
+      |> ready
+      |> switch(1, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> switch(0, true)
+      |> activate("King")
+      |> pass
+      |> pass
+      |> pass == %{
+        players: [
+          %{ card: "Unknown", true_card: "Judge", money: 9 },
+          %{ card: "Unknown", true_card: "King", money: 6 },
+          %{ card: "Unknown", true_card: "Queen", money: 6 },
+          %{ card: "Unknown", true_card: "Thief", money: 6 },
+        ],
+        free_cards: [
+          %{ card: "Unknown", true_card: "Bishop" },
+          %{ card: "Unknown", true_card: "Liar" }
+        ],
+        court_money: 0,
         round: 5,
+        active_player: 1,
       }
   end
 end

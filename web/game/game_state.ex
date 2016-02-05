@@ -62,7 +62,20 @@ defmodule ElMascarar.GameState do
   end
 
   def activate(game, card_name) do
-    raise "NotSupported"
+    if game.round < 4 do
+      raise "NotSupported"
+    else
+      game = ready(game)
+      active_player_card_number = rem(game.round, 4)
+      myPreviousCard = Enum.at(game.players, active_player_card_number)
+      myCard = myPreviousCard |> Map.put(:card, "Claim:Queen")
+      %{
+        players: game.players |> List.replace_at(active_player_card_number, myCard),
+        free_cards: game.free_cards,
+        court_money: game.court_money,
+        round: game.round + 1,
+      }
+    end
   end
 
   def hide_cards(cards) do

@@ -3,9 +3,7 @@ defmodule ElMascarar.Repo.Migrations.CreateGame do
 
   def change do
     create table(:games) do
-      add :court_money, :integer
-      add :round, :integer
-
+      add :game_state, :map
       timestamps
     end
 

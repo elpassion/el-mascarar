@@ -25,7 +25,9 @@ defmodule ElMascarar.GameChannel do
 
   def handle_in("switch", %{"index" => index, "switch" => switch}, socket) do
     "games:" <> game_id = socket.topic
-    game = Repo.get!(Game, game_id) |> Game.switch(index, switch) |> Game.serialize
+    game = Repo.get!(Game, game_id) |>
+      Game.switch(index, switch) |>
+      Game.serialize
 
     broadcast socket, "game", %{game: game}
     {:noreply, socket}
@@ -33,7 +35,9 @@ defmodule ElMascarar.GameChannel do
 
   def handle_in("reveal", _, socket) do
     "games:" <> game_id = socket.topic
-    {player_game, rest_game} = Repo.get!(Game, game_id) |> Game.reveal |> Game.serialize
+    {player_game, rest_game} = Repo.get!(Game, game_id) |>
+      Game.reveal |>
+      Game.serialize
 
     push socket, "game", %{game: player_game}
     broadcast_from socket, "game", %{game: rest_game}

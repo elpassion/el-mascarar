@@ -26,26 +26,28 @@ defmodule ElMascarar.Game do
     game |> Repo.preload(:players)
   end
 
-  def find_or_create do
-   case all_games = Repo.all(Game) do
-     [] -> create
-     _ ->
-       last_game = all_games |> List.last |> Game.preload
-       if last_game.players |> Enum.count < 4 do
-         last_game
-       else
-         create
-       end
-   end
+  def find_or_create() do
+    case all_games = Repo.all(Game) do
+      [] -> create
+      _ ->
+        last_game = all_games |> List.last |> Game.preload
+        if last_game.players |> Enum.count < 4 do
+          last_game
+        else
+          create
+        end
+    end
   end
 
-  def create do
-    game_state = GameState.create_game(["Queen", "King", "Judge", "Bishop", "Thief", "Liar"])
+  def create() do
+    game_state = ["Queen", "King", "Judge", "Bishop", "Thief", "Liar"] |>
+      GameState.create_game
     Repo.insert!(%Game{game_state: game_state})
   end
 
   def ready(game) do
-    Game.changeset(game, %{game_state: (game.game_state |> GameState.ready)}) |> Repo.update!
+    Game.changeset(game, game_state: (game.game_state |> GameState.ready)) |>
+      Repo.update!
   end
 
   def switch(game, index, switch) do
@@ -54,7 +56,7 @@ defmodule ElMascarar.Game do
       GameStateSerializer.to_map |>
       GameState.switch(index, switch)
 
-    Game.changeset(game, %{game_state: game_state}) |> Repo.update!
+    Game.changeset(game, game_state: game_state) |> Repo.update!
   end
 
   def reveal(game) do
@@ -62,13 +64,13 @@ defmodule ElMascarar.Game do
       game.game_state |>
       GameStateSerializer.to_map |>
       GameState.reveal(true)
-    player_game_changeset = Game.changeset(game, %{game_state: player_game_state})
+    player_game_changeset = Game.changeset(game, game_state: player_game_state)
 
     rest_game_state =
       game.game_state |>
       GameStateSerializer.to_map |>
       GameState.reveal(false)
-    rest_game_changeset = Game.changeset(game, %{game_state: rest_game_state})
+    rest_game_changeset = Game.changeset(game, game_state: rest_game_state)
 
     {Repo.update!(player_game_changeset), Repo.update!(rest_game_changeset)}
   end
@@ -80,5 +82,4 @@ defmodule ElMascarar.Game do
   def serialize(game) do
     game |> preload |> GameSerializer.to_map
   end
-
 end

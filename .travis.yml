@@ -3,6 +3,9 @@ elixir:
 - 1.2.0
 addons:
   postgresql: '9.4'
+script:
+- mix credo
+- mix test
 deploy:
   provider: heroku
   api_key:

@@ -21,14 +21,17 @@ defmodule ElMascarar.Game do
     model
     |> cast(params, @required_fields, @optional_fields)
   end
-#
+
+  def preload(game) do
+    game |> Repo.preload(:players)
+  end
+
   def find_or_create() do
    case all_games = Repo.all(Game) do
      [] -> create
      _ ->
-       last_game = all_games |> List.last |> Repo.preload(:players)
-       players_count = last_game.players |> Enum.count
-       if players_count < 4 do
+       last_game = all_games |> List.last |> Game.preload
+       if last_game.players |> Enum.count < 4 do
          last_game
        else
          create
@@ -45,31 +48,37 @@ defmodule ElMascarar.Game do
     Game.changeset(game, %{game_state: (game.game_state |> GameState.ready)}) |> Repo.update!
   end
 
-  def symbolize(object) do
-    for {key, val} <- object, into: %{}, do: {String.to_atom(key), val}
-  end
-
-  def symbolized_game_state(game_state) do
-    %{
-      players: Enum.map(game_state["players"], fn(player) -> symbolize(player) end),
-      free_cards: Enum.map(game_state["free_cards"], fn(card) -> symbolize(card) end),
-      round: game_state["round"],
-      court_money: game_state["court_money"],
-      active_player: game_state["active_player"],
-    }
-  end
-
   def switch(game, index, switch) do
-    Game.changeset(game, %{game_state: (game.game_state |> symbolized_game_state |> GameState.switch(index, switch))}) |> Repo.update!
+    game_state =
+      game.game_state |>
+      GameStateSerializer.to_map |>
+      GameState.switch(index, switch)
+
+    Game.changeset(game, %{game_state: game_state}) |> Repo.update!
   end
 
   def reveal(game) do
-    player_game_state = game.game_state |> symbolized_game_state |> GameState.reveal(true)
+    player_game_state =
+      game.game_state |>
+      GameStateSerializer.to_map |>
+      GameState.reveal(true)
     player_game_changeset = Game.changeset(game, %{game_state: player_game_state})
-    rest_game_state = game.game_state |> symbolized_game_state |> GameState.reveal(false)
+
+    rest_game_state =
+      game.game_state |>
+      GameStateSerializer.to_map |>
+      GameState.reveal(false)
     rest_game_changeset = Game.changeset(game, %{game_state: rest_game_state})
-    player_game = Repo.update!(player_game_changeset) |> Repo.preload(:players)
-    rest_game = Repo.update!(rest_game_changeset) |> Repo.preload(:players)
-    {player_game, rest_game}
+
+    {Repo.update!(player_game_changeset), Repo.update!(rest_game_changeset)}
   end
+
+  def serialize({first_game, second_game}) do
+    {first_game |> serialize, second_game |> serialize}
+  end
+
+  def serialize(game) do
+    game |> preload |> GameSerializer.to_map
+  end
+
 end

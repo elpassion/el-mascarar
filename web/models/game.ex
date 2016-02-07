@@ -46,7 +46,8 @@ defmodule ElMascarar.Game do
   end
 
   def create() do
-    game_state = ["Queen", "King", "Judge", "Bishop", "Thief", "Liar"] |>
+    game_state =
+      Enum.take_random(~w(Queen King Judge Bishop Thief Liar), 6) |>
       GameState.create_game
     game = Repo.insert!(%Game{game_state: game_state})
     Repo.get! Game, game.id

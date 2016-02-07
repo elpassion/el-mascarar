@@ -2,7 +2,7 @@ defmodule ElMascarar.GameChannel do
   use ElMascarar.Web, :channel
 
   def join("games:lobby", _, socket) do
-    game = Game.find_or_create()
+    game = Game.find_or_create() |> Game.serialize
     player =
       Repo.get!(Player, socket.assigns.player_id)
       |> Player.changeset(%{game_id: game.id})

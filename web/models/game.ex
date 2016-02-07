@@ -26,15 +26,21 @@ defmodule ElMascarar.Game do
     game |> Repo.preload(:players)
   end
 
+  def status(game) do
+    case Enum.count game.players do
+      count when count == 4 -> "ready"
+      _ -> "waiting_for_players"
+    end
+  end
+
   def find_or_create() do
     case all_games = Repo.all(Game) do
       [] -> create
       _ ->
         last_game = all_games |> List.last |> Game.preload
-        if last_game.players |> Enum.count < 4 do
-          last_game
-        else
-          create
+        case last_game |> status do
+          "ready" -> create
+          _ -> last_game
         end
     end
   end
@@ -42,7 +48,8 @@ defmodule ElMascarar.Game do
   def create() do
     game_state = ["Queen", "King", "Judge", "Bishop", "Thief", "Liar"] |>
       GameState.create_game
-    Repo.insert!(%Game{game_state: game_state})
+    game = Repo.insert!(%Game{game_state: game_state})
+    Repo.get! Game, game.id
   end
 
   def ready(game) do

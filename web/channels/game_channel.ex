@@ -8,8 +8,7 @@ defmodule ElMascarar.GameChannel do
       |> Player.changeset(%{game_id: game.id})
       |> Repo.update!
 
-    response = %{player_id: player.id, game_id: game.id}
-    {:ok, response, socket}
+    {:ok, %{player_id: player.id, game_id: game.id}, socket}
   end
 
   def join("games:" <> game_id, _, socket) do
@@ -18,7 +17,8 @@ defmodule ElMascarar.GameChannel do
   end
 
   def handle_info({:after_join, %{game_id: game_id}}, socket) do
-    game = Repo.get(Game, game_id) |> Game.serialize
+    game = Repo.get!(Game, game_id) |> Game.serialize
+
     broadcast socket, "game", %{game: game}
     {:noreply, socket}
   end
@@ -26,6 +26,7 @@ defmodule ElMascarar.GameChannel do
   def handle_in("switch", %{"index" => index, "switch" => switch}, socket) do
     "games:" <> game_id = socket.topic
     game = Repo.get!(Game, game_id) |> Game.switch(index, switch) |> Game.serialize
+
     broadcast socket, "game", %{game: game}
     {:noreply, socket}
   end

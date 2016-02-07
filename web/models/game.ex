@@ -26,7 +26,7 @@ defmodule ElMascarar.Game do
     game |> Repo.preload(:players)
   end
 
-  def find_or_create() do
+  def find_or_create do
    case all_games = Repo.all(Game) do
      [] -> create
      _ ->
@@ -39,7 +39,7 @@ defmodule ElMascarar.Game do
    end
   end
 
-  def create() do
+  def create do
     game_state = GameState.create_game(["Queen", "King", "Judge", "Bishop", "Thief", "Liar"])
     Repo.insert!(%Game{game_state: game_state})
   end
@@ -74,7 +74,7 @@ defmodule ElMascarar.Game do
   end
 
   def serialize({first_game, second_game}) do
-    {first_game |> serialize, second_game |> serialize}
+    {serialize(first_game), serialize(second_game)}
   end
 
   def serialize(game) do

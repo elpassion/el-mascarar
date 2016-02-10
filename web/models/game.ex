@@ -1,6 +1,7 @@
 defmodule ElMascarar.Game do
   use ElMascarar.Web, :model
   alias ElMascarar.GameState
+  alias Poison.Parser
 
   schema "games" do
     field :game_state, :map
@@ -50,7 +51,7 @@ defmodule ElMascarar.Game do
       Enum.take_random(~w(Queen King Judge Bishop Thief Liar), 6) |>
       GameState.create_game |>
       Poison.encode! |>
-      Poison.Parser.parse!
+      Parser.parse!
     game = Repo.insert!(%Game{game_state: game_state})
   end
 

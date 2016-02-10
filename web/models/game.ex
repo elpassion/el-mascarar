@@ -33,7 +33,7 @@ defmodule ElMascarar.Game do
     end
   end
 
-  def find_or_create() do
+  def find_or_create do
     case all_games = Repo.all(Game) do
       [] -> create
       _ ->
@@ -45,12 +45,13 @@ defmodule ElMascarar.Game do
     end
   end
 
-  def create() do
+  def create do
     game_state =
       Enum.take_random(~w(Queen King Judge Bishop Thief Liar), 6) |>
-      GameState.create_game
+      GameState.create_game |>
+      Poison.encode! |>
+      Poison.Parser.parse!
     game = Repo.insert!(%Game{game_state: game_state})
-    Repo.get! Game, game.id
   end
 
   def ready(game) do

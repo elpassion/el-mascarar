@@ -6,6 +6,10 @@ defmodule ElMascarar.GameStateTest do
     {:ok, game: game}
   end
 
+  defp allow_advanced_actions(game) do
+    %{game | round: 4}
+  end
+
   test "starting state", %{game: game} do
     assert game == %{
       players_money: [6, 6, 6, 6],
@@ -118,84 +122,53 @@ defmodule ElMascarar.GameStateTest do
     } = game |> ready |> switch(5, true)
   end
 
-  # test "reveal not legal before move 4" do
-  #   assert_raise RuntimeError, fn ->
-  #     create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #       |> ready
-  #       |> switch(1, true)
-  #       |> switch(0, true)
-  #       |> switch(0, true)
-  #       |> reveal(false)
-  #   end
-  # end
+  test "reveal not legal before move 4", %{game: game} do
+    assert_raise RuntimeError, fn ->
+      game |> ready |> reveal(false)
+    end
+  end
 
-  # test "reveal ok on move 4" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> reveal(false) == %{
-  #       players: [
-  #         %{ card: "Revealed", true_card: "Judge", money: 6 },
-  #         %{ card: "Unknown", true_card: "King", money: 6 },
-  #         %{ card: "Unknown", true_card: "Queen", money: 6 },
-  #         %{ card: "Unknown", true_card: "Thief", money: 6 },
-  #       ],
-  #       free_cards: [
-  #         %{ card: "Unknown", true_card: "Bishop" },
-  #         %{ card: "Unknown", true_card: "Liar" }
-  #       ],
-  #       court_money: 0,
-  #       round: 5,
-  #       active_player: 1,
-  #     }
-  # end
+  test "reveal ok on move 4", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Revealed", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"},
+      ],
+      round: 5,
+    } = game |> ready |> allow_advanced_actions |> reveal(false)
+  end
 
-  # test "reveal shows card to owner" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> reveal(true) == %{
-  #       players: [
-  #         %{ card: "Judge", true_card: "Judge", money: 6 },
-  #         %{ card: "Unknown", true_card: "King", money: 6 },
-  #         %{ card: "Unknown", true_card: "Queen", money: 6 },
-  #         %{ card: "Unknown", true_card: "Thief", money: 6 },
-  #       ],
-  #       free_cards: [
-  #         %{ card: "Unknown", true_card: "Bishop" },
-  #         %{ card: "Unknown", true_card: "Liar" }
-  #       ],
-  #       court_money: 0,
-  #       round: 5,
-  #       active_player: 1,
-  #     }
-  # end
+  test "reveal shows card to owner", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Queen", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"},
+      ],
+      round: 5,
+    } = game |> ready |> allow_advanced_actions |> reveal(true)
+  end
 
-  # test "fake switching" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, false) == %{
-  #     players: [
-  #       %{ card: "SwitchedOrNot", true_card: "Queen", money: 6 },
-  #       %{ card: "SwitchedOrNot", true_card: "King", money: 6 },
-  #       %{ card: "Unknown", true_card: "Thief", money: 6 },
-  #       %{ card: "Unknown", true_card: "Judge", money: 6 },
-  #     ],
-  #     free_cards: [
-  #       %{ card: "Unknown", true_card: "Bishop" },
-  #       %{ card: "Unknown", true_card: "Liar" }
-  #     ],
-  #     court_money: 0,
-  #     round: 1,
-  #     active_player: 1,
-  #   }
-  # end
+  test "fake switching", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "SwitchedOrNot", true_card: "Queen"},
+        %{card: "SwitchedOrNot", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"},
+      ],
+      round: 1,
+    } = game |> ready |> switch(1, false)
+  end
 
   # test "activation not legal before move 4" do
   #   assert_raise RuntimeError, fn ->

@@ -30,7 +30,7 @@ defmodule ElMascarar.GameState do
       List.replace_at(first_card_index, second_card) |>
       List.replace_at(second_card_index, first_card)
 
-    %{game | cards: cards, round: game.round + 1}
+    %{game | cards: cards}
   end
 
   defp mark_switched(game, first_card_index, second_card_index) do
@@ -48,6 +48,20 @@ defmodule ElMascarar.GameState do
     %{card | card: "SwitchedOrNot"}
   end
 
+  defp mark_revealed(game, index) do
+    card = Enum.at(game.cards, index)
+    card = %{card | card: "Revealed"}
+    cards = List.replace_at(game.cards, index, card)
+    %{game | cards: cards}
+  end
+
+  defp reveal_card(game, index) do
+    card = Enum.at(game.cards, index)
+    card = %{card | card: card.true_card}
+    cards = List.replace_at(game.cards, index, card)
+    %{game | cards: cards}
+  end
+
   defp active_player_index(game) do
     rem(game.round, 4)
   end
@@ -57,32 +71,25 @@ defmodule ElMascarar.GameState do
       raise "Cannot switch own card"
     end
 
-    game =
-      game |>
+    game = game |>
       ready |>
       mark_switched(active_player_index(game), switched_card_index)
     if switch? do
-      game |> switch_cards(active_player_index(game), switched_card_index)
+      game = game |> switch_cards(active_player_index(game), switched_card_index)
     end
+
+    %{game | round: game.round + 1}
   end
 
-  # def reveal(game, is_owner) do
-  #   if game.round < 4 do
-  #     raise "NotSupported"
-  #   else
-  #     game = ready(game)
-  #     active_player_card_number = rem(game.round, 4)
-  #     my_previous_card = Enum.at(game.players, active_player_card_number)
-  #     my_card = my_previous_card |> Map.put(:card, if is_owner do my_previous_card.true_card else "Revealed" end)
-  #     %{
-  #       players: game.players |> List.replace_at(active_player_card_number, my_card),
-  #       free_cards: game.free_cards,
-  #       court_money: game.court_money,
-  #       round: game.round + 1,
-  #       active_player: rem(game.active_player + 1, 4),
-  #     }
-  #   end
-  # end
+  def reveal(game, owner?) do
+    if game.round < 4 do
+      raise "NotSupported"
+    else
+      game = game |> ready |> mark_revealed(active_player_index(game))
+      if owner? do game = game |> reveal_card(active_player_index(game)) end
+    end
+    %{game | round: game.round + 1}
+  end
 
   # def activate(game, card_name) do
   #   if game.round < 4 do

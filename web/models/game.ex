@@ -52,7 +52,7 @@ defmodule ElMascarar.Game do
       GameState.create_game |>
       Poison.encode! |>
       Parser.parse!
-    game = Repo.insert!(%Game{game_state: game_state})
+    Repo.insert!(%Game{game_state: game_state})
   end
 
   def ready(game) do

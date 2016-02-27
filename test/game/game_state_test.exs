@@ -229,86 +229,53 @@ defmodule ElMascarar.GameStateTest do
     } = game |> allow_advanced_actions |> activate("King") |> pass |> pass
   end
 
-  # test "third pass executes claim" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> activate("King")
-  #     m |> pass
-  #     |> pass
-  #     |> pass == %{
-  #       players: [
-  #         %{ card: "Unknown", true_card: "Judge", money: 9 },
-  #         %{ card: "Unknown", true_card: "King", money: 6 },
-  #         %{ card: "Unknown", true_card: "Queen", money: 6 },
-  #         %{ card: "Unknown", true_card: "Thief", money: 6 },
-  #       ],
-  #       free_cards: [
-  #         %{ card: "Unknown", true_card: "Bishop" },
-  #         %{ card: "Unknown", true_card: "Liar" }
-  #       ],
-  #       court_money: 0,
-  #       round: 5,
-  #       active_player: 1,
-  #     }
-  # end
+  test "third pass executes claim", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Unknown", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 0,
+      players_money: [9, _, _, _]
+    } = game |> allow_advanced_actions |> activate("King") |> pass |> pass |> pass
+  end
 
-  # test "third pass executes claim as Queen" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> activate("Queen")
-  #     |> pass
-  #     |> pass
-  #     |> pass == %{
-  #       players: [
-  #         %{ card: "Unknown", true_card: "Judge", money: 8 },
-  #         %{ card: "Unknown", true_card: "King", money: 6 },
-  #         %{ card: "Unknown", true_card: "Queen", money: 6 },
-  #         %{ card: "Unknown", true_card: "Thief", money: 6 },
-  #       ],
-  #       free_cards: [
-  #         %{ card: "Unknown", true_card: "Bishop" },
-  #         %{ card: "Unknown", true_card: "Liar" }
-  #       ],
-  #       court_money: 0,
-  #       round: 5,
-  #       active_player: 1,
-  #     }
-  # end
+  test "third pass executes claim as Queen", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Unknown", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 0,
+      players_money: [8, _, _, _]
+    } = game |> allow_advanced_actions |> activate("Queen") |> pass |> pass |> pass
+  end
 
-  # test "third pass executes claim as Thief" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> activate("Thief")
-  #     |> pass
-  #     |> pass
-  #     |> pass == %{
-  #       players: [
-  #         %{ card: "Unknown", true_card: "Judge", money: 8 },
-  #         %{ card: "Unknown", true_card: "King", money: 5 },
-  #         %{ card: "Unknown", true_card: "Queen", money: 6 },
-  #         %{ card: "Unknown", true_card: "Thief", money: 5 },
-  #       ],
-  #       free_cards: [
-  #         %{ card: "Unknown", true_card: "Bishop" },
-  #         %{ card: "Unknown", true_card: "Liar" }
-  #       ],
-  #       court_money: 0,
-  #       round: 5,
-  #       active_player: 1,
-  #     }
-  # end
+  test "third pass executes claim as Thief", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Unknown", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 0,
+      players_money: [8, 5, 6, 5]
+    } = game |> allow_advanced_actions |> activate("Thief") |> pass |> pass |> pass
+  end
 
   # test "can claim to be the same card as active player" do
   #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])

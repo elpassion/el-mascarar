@@ -45,6 +45,18 @@ defmodule ElMascarar.GameState do
     %{game | active_player: rem(game.active_player + 1, 4)}
   end
 
+  defp main_player_index(game) do
+    rem(game.round, 4)
+  end
+
+  defp next_player_index(game) do
+    rem(game.active_player + 1, 4)
+  end
+
+  defp previous_player_index(game) do
+    rem(game.active_player - 1, 4)
+  end
+
   def switch(game, switched_card_index, switch?) do
     authorize_action!(game, :switch)
     if switched_card_index == game.active_player do
@@ -76,44 +88,34 @@ defmodule ElMascarar.GameState do
     game |> increase_active_player
   end
 
+  defp change_money(game, player, ammount) do
+    new_player_ammount = Enum.at(game.players_money, player) + ammount
+    players_money = game.players_money |>
+      List.replace_at(player, new_player_ammount)
+
+    %{game | players_money: players_money}
+  end
+
   def pass(game) do
-    game |> increase_active_player
-    # new_active_player = rem(game.active_player + 1, 4)
-    # active_player_card_number = rem(game.round, 4)
-    # if new_active_player == active_player_card_number do
-    #   my_previous_card = Enum.at(game.players, active_player_card_number)
-    #   my_card = %{
-    #     card: "Unknown",
-    #     true_card: my_previous_card.true_card,
-    #     money: my_previous_card.money + if my_previous_card.card == "Claim:King" do 3 else 2 end,
-    #   }
-    #   new_players = game.players |> List.replace_at(active_player_card_number, my_card)
-    #   if my_previous_card.card == "Claim:Thief" do
-    #     right_player_card_number = rem(active_player_card_number - 1, 4)
-    #     right_player_previous_card = Enum.at(game.players, right_player_card_number)
-    #     right_player_card = right_player_previous_card |> Map.put(:money, right_player_previous_card.money - 1)
-    #     left_player_card_number = rem(active_player_card_number + 1, 4)
-    #     left_player_previous_card = Enum.at(game.players, left_player_card_number)
-    #     left_player_card = left_player_previous_card |> Map.put(:money, left_player_previous_card.money - 1)
-    #     new_players = new_players
-    #     |> List.replace_at(right_player_card_number, right_player_card)
-    #     |> List.replace_at(left_player_card_number, left_player_card)
-    #   end
-    #   %{
-    #     players: new_players,
-    #     free_cards: game.free_cards,
-    #     court_money: game.court_money,
-    #     round: game.round + 1,
-    #     active_player: new_active_player + 1,
-    #   }
-    # else
-    #   %{
-    #     players: game.players,
-    #     free_cards: game.free_cards,
-    #     court_money: game.court_money,
-    #     round: game.round,
-    #     active_player: new_active_player,
-    #   }
-    # end
+    claiming_player_index = main_player_index(game)
+    "Claim:" <> claimed_card = Enum.at(game.cards, claiming_player_index).card
+
+    game = game |> increase_active_player
+
+    if game.active_player == claiming_player_index do
+      case claimed_card do
+        "Queen" ->
+          game = game |> change_money(claiming_player_index, 2)
+        "King" ->
+          game = game |> change_money(claiming_player_index, 3)
+        "Thief" ->
+          game = game |>
+            change_money(previous_player_index(game), -1) |>
+            change_money(next_player_index(game), -1) |>
+            change_money(claiming_player_index, 2)
+      end
+      game = game |> ready |> increase_round
+    end
+    game
   end
 end

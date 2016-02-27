@@ -8,6 +8,7 @@ defmodule ElMascarar.GameState do
       court_money: 0,
       round: 0,
       active_player: 0,
+      claimed_card: nil,
     }
   end
 
@@ -15,12 +16,29 @@ defmodule ElMascarar.GameState do
     unless authorized_actions(game)[action], do: raise "Unauthorized Action"
   end
 
+  defp authorize_action!(game, :activate, card_name) do
+    authorize_action!(game, :activate)
+    if game.active_player != main_player_index(game) &&
+      card_name != game.claimed_card do
+      raise "Unauthorized Action"
+    end
+  end
+
   defp authorized_actions(game) do
     %{
-      switch: true,
-      reveal: game.round >= 4,
+      pass: game.claimed_card,
+      switch: !game.claimed_card,
+      reveal: game.round >= 4 && !game.claimed_card,
       activate: game.round >= 4,
     }
+  end
+
+  defp claiming_card?(game, player_index) do
+    try do
+      "Claim:" <> _ = Enum.at(game.cards, player_index).card
+    rescue
+      MatchError -> false
+    end
   end
 
   defp create_cards_list(card_names) do
@@ -49,12 +67,20 @@ defmodule ElMascarar.GameState do
     rem(game.round, 4)
   end
 
-  defp next_player_index(game) do
-    rem(game.active_player + 1, 4)
+  defp next_player_index(index) do
+    rem(index + 1, 4)
   end
 
-  defp previous_player_index(game) do
-    rem(game.active_player - 1, 4)
+  defp previous_player_index(index) do
+    rem(index - 1, 4)
+  end
+
+  defp change_money(game, player, ammount) do
+    new_player_ammount = Enum.at(game.players_money, player) + ammount
+    players_money = game.players_money |>
+      List.replace_at(player, new_player_ammount)
+
+    %{game | players_money: players_money}
   end
 
   def switch(game, switched_card_index, switch?) do
@@ -82,40 +108,87 @@ defmodule ElMascarar.GameState do
   end
 
   def activate(game, card_name) do
-    authorize_action!(game, :activate)
-    game = game |> ready |> mark_claimed(game.active_player, card_name)
+    authorize_action!(game, :activate, card_name)
+    unless game.claimed_card, do: game = %{game |> ready | claimed_card: card_name}
 
-    game |> increase_active_player
-  end
+    game = game |>
+      mark_claimed(game.active_player, card_name) |>
+      increase_active_player
 
-  defp change_money(game, player, ammount) do
-    new_player_ammount = Enum.at(game.players_money, player) + ammount
-    players_money = game.players_money |>
-      List.replace_at(player, new_player_ammount)
+    if game.active_player == main_player_index(game) do
+      claiming_players = game.cards |>
+        Stream.with_index |>
+        Enum.filter(fn({_, index}) -> game |> claiming_card?(index) end)
+      game = claim_prizes(game, claiming_players)
+    end
 
-    %{game | players_money: players_money}
+    game
   end
 
   def pass(game) do
-    claiming_player_index = main_player_index(game)
-    "Claim:" <> claimed_card = Enum.at(game.cards, claiming_player_index).card
-
+    authorize_action!(game, :pass)
     game = game |> increase_active_player
 
-    if game.active_player == claiming_player_index do
-      case claimed_card do
-        "Queen" ->
-          game = game |> change_money(claiming_player_index, 2)
-        "King" ->
-          game = game |> change_money(claiming_player_index, 3)
-        "Thief" ->
-          game = game |>
-            change_money(previous_player_index(game), -1) |>
-            change_money(next_player_index(game), -1) |>
-            change_money(claiming_player_index, 2)
+    if game.active_player == main_player_index(game) do
+      claiming_players = game.cards |>
+        Stream.with_index |>
+        Enum.filter(fn({_, index}) -> claiming_card?(game, index) end)
+
+      if Enum.count(claiming_players) > 1 do
+        game = claim_prizes(game, claiming_players)
+      else
+        game = game |>
+          claim_prize(game.active_player, game.claimed_card) |>
+          claim_prizes([]) |>
+          ready
       end
-      game = game |> ready |> increase_round
     end
+
     game
   end
+
+  defp claim_prizes(game, []) do
+    %{game |> increase_round |> increase_active_player | claimed_card: nil}
+  end
+
+  defp claim_prizes(game, claiming_players) do
+    {%{true_card: player_card}, player_index} = claiming_players |> Enum.at(0)
+
+    if player_card == game.claimed_card do
+      game = game |>
+        reveal_card(player_index) |>
+        claim_prize(player_index, player_card)
+    else
+      game = game |>
+        reveal_card(player_index) |>
+        change_money(player_index, -2) |>
+        add_to_court
+    end
+
+    claiming_players = claiming_players |> Enum.drop(1)
+    claim_prizes(game, claiming_players)
+  end
+
+  defp add_to_court(game) do
+    %{game | court_money: game.court_money + 2}
+  end
+
+  defp claim_prize(game, player_index, card) do
+    case card do
+      "Queen" ->
+        game |> change_money(player_index, 2)
+      "King" ->
+        game |> change_money(player_index, 3)
+      "Thief" ->
+        game |>
+          change_money(previous_player_index(player_index), -1) |>
+          change_money(next_player_index(player_index), -1) |>
+          change_money(player_index, 2)
+      "Judge" ->
+        %{game |> change_money(player_index, game.court_money) | court_money: 0}
+      "Bishop" ->
+        game
+    end
+  end
+
 end

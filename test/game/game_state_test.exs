@@ -10,6 +10,10 @@ defmodule ElMascarar.GameStateTest do
     %{game | round: 4}
   end
 
+  defp supply_court(game, ammount) do
+    %{game | court_money: game.court_money + ammount}
+  end
+
   test "starting state", %{game: game} do
     assert game == %{
       players_money: [6, 6, 6, 6],
@@ -24,6 +28,7 @@ defmodule ElMascarar.GameStateTest do
       court_money: 0,
       round: 0,
       active_player: 0,
+      claimed_card: nil,
     }
   end
 
@@ -240,25 +245,9 @@ defmodule ElMascarar.GameStateTest do
         %{card: "Unknown", true_card: "Liar"}
       ],
       round: 5,
-      active_player: 0,
+      active_player: 1,
       players_money: [9, _, _, _]
     } = game |> allow_advanced_actions |> activate("King") |> pass |> pass |> pass
-  end
-
-  test "third pass executes claim as Queen", %{game: game} do
-    assert %{
-      cards: [
-        %{card: "Unknown", true_card: "Queen"},
-        %{card: "Unknown", true_card: "King"},
-        %{card: "Unknown", true_card: "Thief"},
-        %{card: "Unknown", true_card: "Judge"},
-        %{card: "Unknown", true_card: "Bishop"},
-        %{card: "Unknown", true_card: "Liar"}
-      ],
-      round: 5,
-      active_player: 0,
-      players_money: [8, _, _, _]
-    } = game |> allow_advanced_actions |> activate("Queen") |> pass |> pass |> pass
   end
 
   test "third pass executes claim as Thief", %{game: game} do
@@ -272,46 +261,119 @@ defmodule ElMascarar.GameStateTest do
         %{card: "Unknown", true_card: "Liar"}
       ],
       round: 5,
-      active_player: 0,
+      active_player: 1,
       players_money: [8, 5, 6, 5]
     } = game |> allow_advanced_actions |> activate("Thief") |> pass |> pass |> pass
   end
 
-  # test "can claim to be the same card as active player" do
-  #   assert create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #     |> ready
-  #     |> switch(1, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> switch(0, true)
-  #     |> activate("Queen")
-  #     |> activate("Queen") == %{
-  #       players: [
-  #         %{ card: "Claim:Queen", true_card: "Judge", money: 6 },
-  #         %{ card: "Claim:Queen", true_card: "King", money: 6 },
-  #         %{ card: "Unknown", true_card: "Queen", money: 6 },
-  #         %{ card: "Unknown", true_card: "Thief", money: 6 },
-  #       ],
-  #       free_cards: [
-  #         %{ card: "Unknown", true_card: "Bishop" },
-  #         %{ card: "Unknown", true_card: "Liar" }
-  #       ],
-  #       court_money: 0,
-  #       round: 4,
-  #       active_player: 2,
-  #     }
-  # end
+  test "third pass executes claim as Queen", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Unknown", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 1,
+      players_money: [8, 6, 6, 6]
+    } = game |> allow_advanced_actions |> activate("Queen") |> pass |> pass |> pass
+  end
 
-  # test "cannot claim to be different card than active player" do
-  #   assert_raise RuntimeError, fn ->
-  #     create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
-  #       |> ready
-  #       |> switch(1, true)
-  #       |> switch(0, true)
-  #       |> switch(0, true)
-  #       |> switch(0, true)
-  #       |> activate("Queen")
-  #       |> activate("Judge")
-  #   end
-  # end
+  test "third pass executes claim as Judge", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Unknown", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 1,
+      court_money: 0,
+      players_money: [10, 6, 6, 6]
+    } = game |> allow_advanced_actions |> supply_court(4) |>
+      activate("Judge") |> pass |> pass |> pass
+  end
+
+  test "third pass executes claim as Bishop", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Unknown", true_card: "Queen"},
+        %{card: "Unknown", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 1,
+      court_money: 0,
+      players_money: [6, 6, 6, 6]
+    } = game |> allow_advanced_actions |>
+      activate("Bishop") |> pass |> pass |> pass
+  end
+
+  test "switch and reveal are illegal while claiming", %{game: game} do
+    assert_raise RuntimeError, fn ->
+      game |> allow_advanced_actions |> activate("King") |> reveal(true)
+    end
+
+    assert_raise RuntimeError, fn ->
+      game |> allow_advanced_actions |> activate("King") |> switch(2, true)
+    end
+  end
+
+  test "activate different card is illegal while claiming", %{game: game} do
+    assert_raise RuntimeError, fn ->
+      game |> allow_advanced_actions |> activate("King") |> activate("Queen")
+    end
+
+    assert_raise RuntimeError, fn ->
+      game |> allow_advanced_actions |> activate("King") |> activate("Thief")
+    end
+  end
+
+  test "pass is illegal while not claiming", %{game: game} do
+    assert_raise RuntimeError, fn ->
+      game |> allow_advanced_actions |> pass
+    end
+  end
+
+  test "can claim to be the same card", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Claim:King", true_card: "Queen"},
+        %{card: "Claim:King", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Unknown", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 4,
+      active_player: 2,
+      players_money: [6, 6, 6, 6]
+    } = game |> allow_advanced_actions |> activate("King") |> activate("King")
+  end
+
+  test "when claiming prize lying people get fined", %{game: game} do
+    assert %{
+      cards: [
+        %{card: "Queen", true_card: "Queen"},
+        %{card: "King", true_card: "King"},
+        %{card: "Unknown", true_card: "Thief"},
+        %{card: "Judge", true_card: "Judge"},
+        %{card: "Unknown", true_card: "Bishop"},
+        %{card: "Unknown", true_card: "Liar"}
+      ],
+      round: 5,
+      active_player: 1,
+      players_money: [4, 9, 6, 4],
+      court_money: 4,
+    } = game |> allow_advanced_actions |> activate("King") |> activate("King")  |> pass |> activate("King")
+  end
 end

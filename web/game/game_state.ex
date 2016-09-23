@@ -1,153 +1,194 @@
 defmodule ElMascarar.GameState do
+  import ElMascarar.GameState.CardOperations
 
   def create_game(card_names) do
     %{
-      players: Enum.take(card_names, 4) |> create_players_list,
-      free_cards: Enum.drop(card_names, 4) |> create_free_cards_list,
+      cards: card_names |> create_cards_list,
+      players_money: [6, 6, 6, 6],
       court_money: 0,
       round: 0,
       active_player: 0,
+      claimed_card: nil,
     }
+  end
+
+  defp authorize_action!(game, action) do
+    unless authorized_actions(game)[action], do: raise "Unauthorized Action"
+  end
+
+  defp authorize_action!(game, :activate, card_name) do
+    authorize_action!(game, :activate)
+    if game.active_player != main_player_index(game) &&
+      card_name != game.claimed_card do
+      raise "Unauthorized Action"
+    end
+  end
+
+  defp authorized_actions(game) do
+    %{
+      pass: game.claimed_card,
+      switch: !game.claimed_card,
+      reveal: game.round >= 4 && !game.claimed_card,
+      activate: game.round >= 4,
+    }
+  end
+
+  defp claiming_card?(game, player_index) do
+    try do
+      "Claim:" <> _ = Enum.at(game.cards, player_index).card
+    rescue
+      MatchError -> false
+    end
+  end
+
+  defp create_cards_list(card_names) do
+    Enum.map card_names, fn(card_name) ->
+      %{card: card_name, true_card: card_name}
+    end
+  end
+
+  defp hide_cards(cards) do
+    Enum.map(cards, fn(card) -> %{card | card: "Unknown"} end)
   end
 
   def ready(game) do
-    %{
-      players: game.players |> hide_cards,
-      free_cards: game.free_cards |> hide_cards,
-      court_money: game.court_money,
-      round: game.round,
-      active_player: game.active_player,
-    }
+    %{game | cards: game.cards |> hide_cards}
   end
 
-  def switch(game, card_number, switch) do
-    active_player_card_number = rem(game.round, 4)
-    if card_number == active_player_card_number do
-      raise "CannotSwitchOwnCard"
-    else
-      game = ready(game)
-      all_previous_cards = game.players ++ game.free_cards
-      my_previous_card = Enum.at(game.players, active_player_card_number)
-      their_previous_card = Enum.at(all_previous_cards, card_number)
-      if switch do
-        my_card =
-          my_previous_card |>
-          Map.put(:true_card, their_previous_card.true_card) |>
-          Map.put(:card, "SwitchedOrNot")
-        their_card =
-          their_previous_card |>
-          Map.put(:true_card, my_previous_card.true_card) |>
-          Map.put(:card, "SwitchedOrNot")
-      else
-        my_card = my_previous_card |>
-          Map.put(:card, "SwitchedOrNot")
-        their_card = their_previous_card |>
-          Map.put(:card, "SwitchedOrNot")
-      end
-      all_cards = all_previous_cards |>
-        List.replace_at(active_player_card_number, my_card) |>
-        List.replace_at(card_number, their_card)
-      %{
-        players: Enum.take(all_cards, 4),
-        free_cards: Enum.drop(all_cards, 4),
-        court_money: game.court_money,
-        round: game.round + 1,
-        active_player: rem(game.active_player + 1, 4),
-      }
-    end
+  defp increase_round(game) do
+    %{game | round: game.round + 1}
   end
 
-  def reveal(game, is_owner) do
-    if game.round < 4 do
-      raise "NotSupported"
-    else
-      game = ready(game)
-      active_player_card_number = rem(game.round, 4)
-      my_previous_card = Enum.at(game.players, active_player_card_number)
-      my_card = my_previous_card |> Map.put(:card, if is_owner do my_previous_card.true_card else "Revealed" end)
-      %{
-        players: game.players |> List.replace_at(active_player_card_number, my_card),
-        free_cards: game.free_cards,
-        court_money: game.court_money,
-        round: game.round + 1,
-        active_player: rem(game.active_player + 1, 4),
-      }
+  defp increase_active_player(game) do
+    %{game | active_player: rem(game.active_player + 1, 4)}
+  end
+
+  defp main_player_index(game) do
+    rem(game.round, 4)
+  end
+
+  defp next_player_index(index) do
+    rem(index + 1, 4)
+  end
+
+  defp previous_player_index(index) do
+    rem(index - 1, 4)
+  end
+
+  defp change_money(game, player, ammount) do
+    new_player_ammount = Enum.at(game.players_money, player) + ammount
+    players_money = game.players_money |>
+      List.replace_at(player, new_player_ammount)
+
+    %{game | players_money: players_money}
+  end
+
+  def switch(game, switched_card_index, switch?) do
+    authorize_action!(game, :switch)
+    if switched_card_index == game.active_player do
+      raise "Cannot switch own card"
     end
+
+    game = game |>
+      ready |>
+      mark_switched(game.active_player, switched_card_index)
+    if switch? do
+      game = game |> switch_cards(game.active_player, switched_card_index)
+    end
+
+    game |> increase_round |> increase_active_player
+  end
+
+  def reveal(game, owner?) do
+    authorize_action!(game, :reveal)
+    game = game |> ready |> mark_revealed(game.active_player)
+    if owner? do game = game |> reveal_card(game.active_player) end
+
+    game |> increase_round |> increase_active_player
   end
 
   def activate(game, card_name) do
-    if game.round < 4 do
-      raise "NotSupported"
-    else
-      round_player = rem(game.round, 4)
-      if game.active_player == round_player do
-        game = ready(game)
-      else
-        if Enum.at(game.players, round_player).card != "Claim:#{card_name}" do
-          raise "NotSupported"
-        end
-      end
-      my_previous_card = Enum.at(game.players, game.active_player)
-      my_card = my_previous_card |> Map.put(:card, "Claim:#{card_name}")
-      %{
-        players: game.players |> List.replace_at(game.active_player, my_card),
-        free_cards: game.free_cards,
-        court_money: game.court_money,
-        round: game.round,
-        active_player: rem(game.active_player + 1, 4),
-      }
+    authorize_action!(game, :activate, card_name)
+    unless game.claimed_card, do: game = %{game |> ready | claimed_card: card_name}
+
+    game = game |>
+      mark_claimed(game.active_player, card_name) |>
+      increase_active_player
+
+    if game.active_player == main_player_index(game) do
+      claiming_players = game.cards |>
+        Stream.with_index |>
+        Enum.filter(fn({_, index}) -> game |> claiming_card?(index) end)
+      game = claim_prizes(game, claiming_players)
     end
+
+    game
   end
 
   def pass(game) do
-    new_active_player = rem(game.active_player + 1, 4)
-    active_player_card_number = rem(game.round, 4)
-    if new_active_player == active_player_card_number do
-      my_previous_card = Enum.at(game.players, active_player_card_number)
-      my_card = %{
-        card: "Unknown",
-        true_card: my_previous_card.true_card,
-        money: my_previous_card.money + if my_previous_card.card == "Claim:King" do 3 else 2 end,
-      }
-      new_players = game.players |> List.replace_at(active_player_card_number, my_card)
-      if my_previous_card.card == "Claim:Thief" do
-        right_player_card_number = rem(active_player_card_number - 1, 4)
-        right_player_previous_card = Enum.at(game.players, right_player_card_number)
-        right_player_card = right_player_previous_card |> Map.put(:money, right_player_previous_card.money - 1)
-        left_player_card_number = rem(active_player_card_number + 1, 4)
-        left_player_previous_card = Enum.at(game.players, left_player_card_number)
-        left_player_card = left_player_previous_card |> Map.put(:money, left_player_previous_card.money - 1)
-        new_players = new_players
-          |> List.replace_at(right_player_card_number, right_player_card)
-          |> List.replace_at(left_player_card_number, left_player_card)
+    authorize_action!(game, :pass)
+    game = game |> increase_active_player
+
+    if game.active_player == main_player_index(game) do
+      claiming_players = game.cards |>
+        Stream.with_index |>
+        Enum.filter(fn({_, index}) -> claiming_card?(game, index) end)
+
+      if Enum.count(claiming_players) > 1 do
+        game = claim_prizes(game, claiming_players)
+      else
+        game = game |>
+          claim_prize(game.active_player, game.claimed_card) |>
+          claim_prizes([]) |>
+          ready
       end
-      %{
-        players: new_players,
-        free_cards: game.free_cards,
-        court_money: game.court_money,
-        round: game.round + 1,
-        active_player: new_active_player + 1,
-      }
+    end
+
+    game
+  end
+
+  defp claim_prizes(game, []) do
+    %{game |> increase_round |> increase_active_player | claimed_card: nil}
+  end
+
+  defp claim_prizes(game, claiming_players) do
+    {%{true_card: player_card}, player_index} = claiming_players |> Enum.at(0)
+
+    if player_card == game.claimed_card do
+      game = game |>
+        reveal_card(player_index) |>
+        claim_prize(player_index, player_card)
     else
-      %{
-        players: game.players,
-        free_cards: game.free_cards,
-        court_money: game.court_money,
-        round: game.round,
-        active_player: new_active_player,
-      }
+      game = game |>
+        reveal_card(player_index) |>
+        change_money(player_index, -2) |>
+        add_to_court
+    end
+
+    claiming_players = claiming_players |> Enum.drop(1)
+    claim_prizes(game, claiming_players)
+  end
+
+  defp add_to_court(game) do
+    %{game | court_money: game.court_money + 2}
+  end
+
+  defp claim_prize(game, player_index, card) do
+    case card do
+      "Queen" ->
+        game |> change_money(player_index, 2)
+      "King" ->
+        game |> change_money(player_index, 3)
+      "Thief" ->
+        game |>
+          change_money(previous_player_index(player_index), -1) |>
+          change_money(next_player_index(player_index), -1) |>
+          change_money(player_index, 2)
+      "Judge" ->
+        %{game |> change_money(player_index, game.court_money) | court_money: 0}
+      "Bishop" ->
+        game
     end
   end
 
-  def hide_cards(cards) do
-    Enum.map(cards, fn(card) -> Map.put(card, :card, "Unknown") end)
-  end
-
-  defp create_players_list(card_names) do
-    Enum.map(card_names, fn(card_name) -> %{ card: card_name, true_card: card_name, money: 6 } end)
-  end
-
-  defp create_free_cards_list(card_names) do
-    Enum.map(card_names, fn(card_name) -> %{ card: card_name, true_card: card_name } end)
-  end
 end

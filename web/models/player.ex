@@ -2,7 +2,7 @@ defmodule ElMascarar.Player do
   use ElMascarar.Web, :model
 
   schema "players" do
-    belongs_to :game, Game
+    belongs_to :game, Gamer
     timestamps
   end
 

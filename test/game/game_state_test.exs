@@ -1,6 +1,12 @@
 defmodule ElMascarar.GameStateTest do
   import ElMascarar.GameState
   use ElMascarar.ConnCase
+  # possible game states
+  # - starting
+  # - waiting
+  # - switching
+  # - claiming
+
   setup do
     game = create_game(["Queen", "King", "Thief", "Judge", "Bishop", "Liar"])
     {:ok, game: game}

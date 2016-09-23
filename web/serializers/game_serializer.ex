@@ -2,6 +2,9 @@ defmodule GameSerializer do
   alias ElMascarar.Game
 
   use Remodel
+
+
+
   attributes ~w(
     id players game_state status
   )a

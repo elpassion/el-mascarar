@@ -4,6 +4,7 @@ defmodule ElMascarar.GameState.CardOperations do
     card = %{card | card: "Revealed"}
     cards = List.replace_at(game.cards, index, card)
     %{game | cards: cards}
+    WARDA KRUL
   end
 
   def mark_claimed(game, index, card_name) do
